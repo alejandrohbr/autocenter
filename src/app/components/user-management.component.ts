@@ -268,8 +268,7 @@ export class UserManagementComponent implements OnInit {
   }
 
   getAvailableRoles() {
-    const allRoles = [
-      { value: 'super_admin', label: 'Super Admin' },
+    const managedRoles = [
       { value: 'admin_corporativo', label: 'Admin Corporativo' },
       { value: 'gerente', label: 'Gerente' },
       { value: 'tecnico', label: 'Técnico' },
@@ -277,9 +276,9 @@ export class UserManagementComponent implements OnInit {
     ];
 
     if (this.authService.isSuperAdmin()) {
-      return allRoles;
+      return managedRoles;
     } else if (this.authService.isAdminCorporativo()) {
-      return allRoles.filter(r => ['gerente', 'tecnico', 'asesor_tecnico'].includes(r.value));
+      return managedRoles.filter(r => ['gerente', 'tecnico', 'asesor_tecnico'].includes(r.value));
     }
 
     return [];
