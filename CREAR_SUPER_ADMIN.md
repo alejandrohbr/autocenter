@@ -1,6 +1,21 @@
 # Guía para Crear el Super Admin
 
-## Método 1: Usando el Dashboard de Supabase (RECOMENDADO)
+## ⚡ MÉTODO MÁS RÁPIDO: Usar la Edge Function
+
+He creado una función especial que crea el Super Admin automáticamente. Solo tienes que abrir esta URL en tu navegador:
+
+**👉 https://hdtsihoxwxlmlhnundue.supabase.co/functions/v1/create-super-admin**
+
+Cuando la abras, verás un mensaje JSON indicando que el usuario fue creado exitosamente. ¡Y listo! Ya puedes iniciar sesión con:
+
+- **Email**: `super@sears.com`
+- **Password**: `123`
+
+Si ya existe el usuario, te dirá "Super Admin ya existe" y también podrás usar las credenciales arriba.
+
+---
+
+## Método 1: Usando el Dashboard de Supabase
 
 ### Paso 1: Crear el Usuario de Autenticación
 
