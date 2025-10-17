@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService, AuditLog, UserSession } from '../services/auth.service';
 
 @Component({
@@ -11,7 +12,17 @@ import { AuthService, AuditLog, UserSession } from '../services/auth.service';
     <div class="min-h-screen bg-gray-50 p-6">
       <div class="max-w-7xl mx-auto">
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">Auditoría del Sistema</h2>
+          <div class="flex items-center gap-4 mb-6">
+            <button
+              (click)="goToDashboard()"
+              class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+              </svg>
+              Volver al Dashboard
+            </button>
+            <h2 class="text-2xl font-bold text-gray-900">Auditoría del Sistema</h2>
+          </div>
 
           <div class="mb-6">
             <div class="border-b border-gray-200">
@@ -240,10 +251,14 @@ export class AuditLogsComponent implements OnInit {
     'other': 'Otra Acción'
   };
 
-  constructor(public authService: AuthService) {}
+  constructor(public authService: AuthService, private router: Router) {}
 
   async ngOnInit() {
     await this.loadData();
+  }
+
+  goToDashboard() {
+    this.router.navigate(['/dashboard']);
   }
 
   async loadData() {
