@@ -18,7 +18,7 @@ export class AutoservicioLoginComponent {
   ) {}
 
   tipoUsuario: string = 'tecnico';
-  email: string = '';
+  username: string = '';
   password: string = '';
   errorMessage: string = '';
   isLoading: boolean = false;
@@ -41,8 +41,8 @@ export class AutoservicioLoginComponent {
   async onLogin() {
     this.errorMessage = '';
 
-    if (!this.email.trim()) {
-      this.errorMessage = 'Por favor ingrese su email';
+    if (!this.username.trim()) {
+      this.errorMessage = 'Por favor ingrese su usuario';
       return;
     }
 
@@ -54,7 +54,7 @@ export class AutoservicioLoginComponent {
     this.isLoading = true;
 
     try {
-      const result = await this.authService.login(this.email, this.password);
+      const result = await this.authService.login(this.username, this.password);
 
       if (result.success && result.user) {
         if (result.user.role === this.tipoUsuario || result.user.role === 'super_admin') {
@@ -64,7 +64,7 @@ export class AutoservicioLoginComponent {
           await this.authService.logout();
         }
       } else {
-        this.errorMessage = result.message || 'Email o contraseña incorrectos';
+        this.errorMessage = result.message || 'Usuario o contraseña incorrectos';
       }
     } catch (error) {
       console.error('Error during login:', error);

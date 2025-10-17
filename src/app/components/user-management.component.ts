@@ -69,16 +69,16 @@ import { AuthService, User, UserRole } from '../services/auth.service';
                     Usuario
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
+                    Nombre / Username
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Rol
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
+                    AutoCenter
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Último acceso
+                    Estado
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
@@ -88,10 +88,11 @@ import { AuthService, User, UserRole } from '../services/auth.service';
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr *ngFor="let user of filteredUsers" class="hover:bg-gray-50">
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">{{user.full_name}}</div>
+                    <div class="text-sm font-medium text-gray-900">{{user.email}}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-500">{{user.email}}</div>
+                    <div class="text-sm font-medium text-gray-900">{{user.full_name}}</div>
+                    <div class="text-xs text-gray-500">{{ '@' + user.username }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span [class]="getRoleBadgeClass(user.role)">
@@ -99,12 +100,12 @@ import { AuthService, User, UserRole } from '../services/auth.service';
                     </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-500">{{user.autocenter || '-'}}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
                     <span [class]="user.is_active ? 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800' : 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800'">
                       {{user.is_active ? 'Activo' : 'Inactivo'}}
                     </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{user.last_login ? (user.last_login | date:'short') : 'Nunca'}}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex gap-2">
@@ -185,12 +186,29 @@ import { AuthService, User, UserRole } from '../services/auth.service';
                 <select
                   [(ngModel)]="formData.role"
                   name="role"
+                  (change)="onRoleChange()"
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                   <option value="">Seleccionar rol...</option>
                   <option *ngFor="let role of getAvailableRoles()" [value]="role.value">
                     {{role.label}}
                   </option>
+                </select>
+              </div>
+
+              <div *ngIf="requiresAutocenter()">
+                <label class="block text-sm font-medium text-gray-700 mb-1">AutoCenter *</label>
+                <select
+                  [(ngModel)]="formData.autocenter"
+                  name="autocenter"
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option value="">Seleccionar AutoCenter...</option>
+                  <option value="insurgentes">Insurgentes</option>
+                  <option value="monterrey">Monterrey</option>
+                  <option value="guadalajara">Guadalajara</option>
+                  <option value="puebla">Puebla</option>
+                  <option value="queretaro">Querétaro</option>
                 </select>
               </div>
 
@@ -236,11 +254,13 @@ export class UserManagementComponent implements OnInit {
     email: string;
     password: string;
     role: UserRole | '';
+    autocenter: string;
   } = {
     full_name: '',
     email: '',
     password: '',
-    role: ''
+    role: '',
+    autocenter: ''
   };
 
   roleLabels: Record<UserRole, string> = {
@@ -325,7 +345,8 @@ export class UserManagementComponent implements OnInit {
       full_name: user.full_name,
       email: user.email,
       password: '',
-      role: user.role
+      role: user.role,
+      autocenter: user.autocenter || ''
     };
     this.showCreateModal = true;
   }
@@ -336,10 +357,14 @@ export class UserManagementComponent implements OnInit {
 
     try {
       if (this.editingUser) {
-        const result = await this.authService.updateUser(this.editingUser.id, {
+        const updateData: any = {
           full_name: this.formData.full_name,
           role: this.formData.role as UserRole
-        });
+        };
+        if (this.requiresAutocenter()) {
+          updateData.autocenter = this.formData.autocenter;
+        }
+        const result = await this.authService.updateUser(this.editingUser.id, updateData);
 
         if (result.success) {
           await this.loadUsers();
@@ -354,12 +379,16 @@ export class UserManagementComponent implements OnInit {
           return;
         }
 
-        const result = await this.authService.createUser({
+        const userData: any = {
           email: this.formData.email,
           password: this.formData.password,
           full_name: this.formData.full_name,
           role: this.formData.role as UserRole
-        });
+        };
+        if (this.requiresAutocenter()) {
+          userData.autocenter = this.formData.autocenter;
+        }
+        const result = await this.authService.createUser(userData);
 
         if (result.success) {
           await this.loadUsers();
@@ -412,7 +441,18 @@ export class UserManagementComponent implements OnInit {
       full_name: '',
       email: '',
       password: '',
-      role: ''
+      role: '',
+      autocenter: ''
     };
+  }
+
+  requiresAutocenter(): boolean {
+    return ['tecnico', 'gerente', 'asesor_tecnico'].includes(this.formData.role);
+  }
+
+  onRoleChange() {
+    if (!this.requiresAutocenter()) {
+      this.formData.autocenter = '';
+    }
   }
 }

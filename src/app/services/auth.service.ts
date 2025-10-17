@@ -6,10 +6,12 @@ export type UserRole = 'super_admin' | 'admin_corporativo' | 'gerente' | 'tecnic
 
 export interface User {
   id: string;
+  username: string;
   email: string;
   full_name: string;
   role: UserRole;
   is_active: boolean;
+  autocenter?: string;
   created_at?: Date;
   updated_at?: Date;
   last_login?: Date;
@@ -80,26 +82,39 @@ export class AuthService {
     }
   }
 
-  async login(email: string, password: string): Promise<{ success: boolean; message?: string; user?: User }> {
+  async login(username: string, password: string): Promise<{ success: boolean; message?: string; user?: User }> {
     try {
-      const { data: authData, error: authError } = await this.supabaseService.client.auth.signInWithPassword({
-        email,
-        password
+      const supabaseUrl = this.supabaseService.supabaseUrl;
+      const supabaseKey = this.supabaseService.supabaseAnonKey;
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/login-with-username`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+        body: JSON.stringify({ username, password })
       });
 
-      if (authError) {
-        console.error('Error during login:', authError);
-        return { success: false, message: 'Email o contraseña incorrectos' };
+      const result = await response.json();
+
+      if (!response.ok || result.error) {
+        return { success: false, message: result.error || 'Usuario o contraseña incorrectos' };
       }
 
-      if (!authData.user) {
+      if (!result.session || !result.user) {
         return { success: false, message: 'Error al autenticar usuario' };
       }
+
+      await this.supabaseService.client.auth.setSession({
+        access_token: result.session.access_token,
+        refresh_token: result.session.refresh_token
+      });
 
       const { data: profile, error: profileError } = await this.supabaseService.client
         .from('user_profiles')
         .select('*')
-        .eq('id', authData.user.id)
+        .eq('id', result.user.id)
         .eq('is_active', true)
         .maybeSingle();
 
@@ -110,10 +125,12 @@ export class AuthService {
 
       const user: User = {
         id: profile.id,
+        username: profile.username,
         email: profile.email,
         full_name: profile.full_name,
         role: profile.role,
         is_active: profile.is_active,
+        autocenter: profile.autocenter,
         last_login: profile.last_login,
         created_at: profile.created_at,
         updated_at: profile.updated_at,
@@ -142,10 +159,12 @@ export class AuthService {
     if (profile) {
       this.currentUser = {
         id: profile.id,
+        username: profile.username,
         email: profile.email,
         full_name: profile.full_name,
         role: profile.role,
         is_active: profile.is_active,
+        autocenter: profile.autocenter,
         last_login: profile.last_login,
         created_at: profile.created_at,
         updated_at: profile.updated_at,
@@ -269,7 +288,7 @@ export class AuthService {
     }
   }
 
-  async createUser(userData: { email: string; password: string; full_name: string; role: UserRole }): Promise<{ success: boolean; message?: string; user?: any }> {
+  async createUser(userData: { email: string; password: string; full_name: string; role: UserRole; autocenter?: string }): Promise<{ success: boolean; message?: string; user?: any }> {
     if (!this.canManageUsers()) {
       return { success: false, message: 'No tienes permisos para crear usuarios' };
     }
@@ -293,6 +312,7 @@ export class AuthService {
           password: userData.password,
           full_name: userData.full_name,
           role: userData.role,
+          autocenter: userData.autocenter,
           created_by: this.currentUser?.id
         })
       });
