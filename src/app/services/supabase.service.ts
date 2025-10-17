@@ -21,4 +21,12 @@ export class SupabaseService {
   get client(): SupabaseClient {
     return this.supabase;
   }
+
+  get supabaseUrl(): string {
+    return environment.supabaseUrl;
+  }
+
+  get supabaseAnonKey(): string {
+    return environment.supabaseAnonKey;
+  }
 }

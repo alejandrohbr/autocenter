@@ -279,39 +279,36 @@ export class AuthService {
     }
 
     try {
-      const { data: authData, error: authError } = await this.supabaseService.client.auth.admin.createUser({
-        email: userData.email,
-        password: userData.password,
-        email_confirm: true
-      });
+      const supabaseUrl = this.supabaseService.supabaseUrl;
+      const supabaseKey = this.supabaseService.supabaseAnonKey;
 
-      if (authError || !authData.user) {
-        return { success: false, message: authError?.message || 'Error al crear usuario' };
-      }
-
-      const { data: profile, error: profileError } = await this.supabaseService.client
-        .from('user_profiles')
-        .insert({
-          id: authData.user.id,
+      const response = await fetch(`${supabaseUrl}/functions/v1/create-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+        body: JSON.stringify({
           email: userData.email,
+          password: userData.password,
           full_name: userData.full_name,
           role: userData.role,
-          is_active: true,
           created_by: this.currentUser?.id
         })
-        .select()
-        .single();
+      });
 
-      if (profileError) {
-        return { success: false, message: 'Error al crear perfil de usuario' };
+      const result = await response.json();
+
+      if (!response.ok || result.error) {
+        return { success: false, message: result.error || 'Error al crear usuario' };
       }
 
-      await this.logAction('create_user', { created_user_id: authData.user.id, role: userData.role });
+      await this.logAction('create_user', { created_user_id: result.user.id, role: userData.role });
 
-      return { success: true, user: profile };
-    } catch (error) {
+      return { success: true, user: result.user };
+    } catch (error: any) {
       console.error('Error creating user:', error);
-      return { success: false, message: 'Error inesperado al crear usuario' };
+      return { success: false, message: error?.message || 'Error inesperado al crear usuario' };
     }
   }
 
