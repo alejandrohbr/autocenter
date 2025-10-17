@@ -1,8 +1,9 @@
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2.58.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
 };
 
@@ -32,10 +33,12 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({
           success: false,
           error: authError.message,
-          details: authError
+          code: authError.code || 'unknown',
+          status: authError.status || 0,
+          details: JSON.stringify(authError)
         }),
         {
-          status: 400,
+          status: 200,
           headers: {
             ...corsHeaders,
             'Content-Type': 'application/json',
@@ -51,7 +54,7 @@ Deno.serve(async (req: Request) => {
           error: 'No user returned'
         }),
         {
-          status: 400,
+          status: 200,
           headers: {
             ...corsHeaders,
             'Content-Type': 'application/json',
@@ -77,7 +80,7 @@ Deno.serve(async (req: Request) => {
           email_confirmed_at: authData.user.email_confirmed_at
         },
         profile: profile,
-        profileError: profileError
+        profileError: profileError ? JSON.stringify(profileError) : null
       }),
       {
         status: 200,
@@ -92,9 +95,10 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : 'Error desconocido',
+        stack: error instanceof Error ? error.stack : undefined
       }),
       {
-        status: 500,
+        status: 200,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json',
