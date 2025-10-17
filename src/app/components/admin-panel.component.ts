@@ -45,13 +45,10 @@ export class AdminPanelComponent implements OnInit {
   orderToDelete: any = null;
 
   newUser: any = {
-    username: '',
     password: '',
     full_name: '',
-    role: 'vendedor',
+    role: 'tecnico',
     email: '',
-    telefono: '',
-    departamento: '',
     is_active: true
   };
 
@@ -86,7 +83,7 @@ export class AdminPanelComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    if (!this.authService.isAdmin()) {
+    if (!this.authService.canManageUsers()) {
       alert('Acceso denegado. Solo administradores pueden acceder.');
       this.router.navigate(['/dashboard']);
       return;
@@ -106,13 +103,7 @@ export class AdminPanelComponent implements OnInit {
 
   async loadUsers() {
     try {
-      const { data, error } = await this.supabaseService.client
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      this.users = data || [];
+      this.users = await this.authService.getAllUsers();
     } catch (error) {
       console.error('Error cargando usuarios:', error);
     }
@@ -156,13 +147,10 @@ export class AdminPanelComponent implements OnInit {
   openCreateUserModal() {
     this.editingUser = null;
     this.newUser = {
-      username: '',
       password: '',
       full_name: '',
-      role: 'vendedor',
+      role: 'tecnico',
       email: '',
-      telefono: '',
-      departamento: '',
       is_active: true
     };
     this.showUserModal = true;
@@ -177,42 +165,27 @@ export class AdminPanelComponent implements OnInit {
   async saveUser() {
     try {
       if (this.editingUser) {
-        const updates: any = {
+        const result = await this.authService.updateUser(this.editingUser.id, {
           full_name: this.newUser.full_name,
           role: this.newUser.role,
-          email: this.newUser.email,
-          telefono: this.newUser.telefono,
-          departamento: this.newUser.departamento,
-          is_active: this.newUser.is_active,
-          updated_at: new Date().toISOString()
-        };
+          is_active: this.newUser.is_active
+        });
 
-        if (this.newUser.password) {
-          updates.password_hash = this.newUser.password;
+        if (!result.success) {
+          throw new Error(result.message);
         }
-
-        const { error } = await this.supabaseService.client
-          .from('users')
-          .update(updates)
-          .eq('id', this.editingUser.id);
-
-        if (error) throw error;
         alert('Usuario actualizado exitosamente');
       } else {
-        const { error } = await this.supabaseService.client
-          .from('users')
-          .insert([{
-            username: this.newUser.username,
-            password_hash: this.newUser.password,
-            full_name: this.newUser.full_name,
-            role: this.newUser.role,
-            email: this.newUser.email,
-            telefono: this.newUser.telefono,
-            departamento: this.newUser.departamento,
-            is_active: this.newUser.is_active
-          }]);
+        const result = await this.authService.createUser({
+          email: this.newUser.email,
+          password: this.newUser.password,
+          full_name: this.newUser.full_name,
+          role: this.newUser.role
+        });
 
-        if (error) throw error;
+        if (!result.success) {
+          throw new Error(result.message);
+        }
         alert('Usuario creado exitosamente');
       }
 
@@ -230,12 +203,10 @@ export class AdminPanelComponent implements OnInit {
     }
 
     try {
-      const { error } = await this.supabaseService.client
-        .from('users')
-        .delete()
-        .eq('id', user.id);
-
-      if (error) throw error;
+      const result = await this.authService.deleteUser(user.id);
+      if (!result.success) {
+        throw new Error(result.message);
+      }
       alert('Usuario eliminado exitosamente');
       await this.loadUsers();
     } catch (error: any) {
@@ -246,12 +217,10 @@ export class AdminPanelComponent implements OnInit {
 
   async toggleUserActive(user: any) {
     try {
-      const { error } = await this.supabaseService.client
-        .from('users')
-        .update({ is_active: !user.is_active, updated_at: new Date().toISOString() })
-        .eq('id', user.id);
-
-      if (error) throw error;
+      const result = await this.authService.toggleUserStatus(user.id, !user.is_active);
+      if (!result.success) {
+        throw new Error(result.message);
+      }
       await this.loadUsers();
     } catch (error: any) {
       console.error('Error actualizando estado:', error);
@@ -379,9 +348,11 @@ export class AdminPanelComponent implements OnInit {
 
   getRoleLabel(role: string): string {
     const roles: any = {
-      'admin': 'Administrador',
-      'vendedor': 'Vendedor',
-      'proveedor': 'Proveedor'
+      'super_admin': 'Super Admin',
+      'admin_corporativo': 'Admin Corporativo',
+      'gerente': 'Gerente',
+      'tecnico': 'Técnico',
+      'asesor_tecnico': 'Asesor Técnico'
     };
     return roles[role] || role;
   }

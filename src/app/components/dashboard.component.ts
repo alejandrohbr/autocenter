@@ -173,7 +173,7 @@ export class DashboardComponent implements OnInit {
   async ngOnInit() {
     await this.loadOrders();
     this.filterOrders();
-    if (this.auth.isAdmin()) {
+    if (this.auth.isSuperAdmin()) {
       await this.loadPendingValidationOrders();
     }
   }
@@ -234,24 +234,41 @@ export class DashboardComponent implements OnInit {
     this.activeView = 'new-order';
   }
 
-  logout() {
-    this.authService.logout();
+  async logout() {
+    await this.authService.logout();
   }
 
   goToAdminPanel() {
     this.router.navigate(['/admin']);
   }
 
+  goToUserManagement() {
+    this.router.navigate(['/users']);
+  }
+
+  goToAudit() {
+    this.router.navigate(['/audit']);
+  }
+
+  getRoleLabel(): string {
+    if (this.auth.isSuperAdmin()) return 'Super Admin';
+    if (this.auth.isAdminCorporativo()) return 'Admin Corporativo';
+    if (this.auth.isGerente()) return 'Gerente';
+    if (this.auth.isTecnico()) return 'Técnico';
+    if (this.auth.isAsesorTecnico()) return 'Asesor Técnico';
+    return 'Usuario';
+  }
+
   canDeleteOrders(): boolean {
-    return this.authService.hasPermission('delete_orders');
+    return this.auth.canManageUsers();
   }
 
   canAuthorizeOrders(): boolean {
-    return this.authService.hasPermission('authorize_orders');
+    return this.auth.canManageUsers();
   }
 
   isAdmin(): boolean {
-    return this.authService.isAdmin();
+    return this.auth.isSuperAdmin() || this.auth.isAdminCorporativo();
   }
 
   getStatusClass(status: string): string {
@@ -777,6 +794,8 @@ export class DashboardComponent implements OnInit {
       this.selectedCustomer = null;
       this.selectedVehicle = null;
       this.activeView = 'dashboard';
+
+      await this.authService.logAction('create_order', { order_id: folio });
 
       alert('Pedido creado exitosamente!');
     } catch (error) {
@@ -1457,7 +1476,7 @@ export class DashboardComponent implements OnInit {
 
       alert('Productos validados correctamente. Ahora requieren aprobación del administrador.');
       await this.loadOrders();
-      if (this.auth.isAdmin()) {
+      if (this.auth.isSuperAdmin()) {
         await this.loadPendingValidationOrders();
       }
     } catch (error) {
@@ -1516,7 +1535,7 @@ export class DashboardComponent implements OnInit {
   async generatePurchaseOrder(order: Order) {
     if (!order.id) return;
 
-    if (!this.isAdmin()) {
+    if (!this.auth.canManageUsers()) {
       alert('Solo los administradores pueden generar órdenes de compra.');
       return;
     }
@@ -1566,6 +1585,8 @@ export class DashboardComponent implements OnInit {
       if (this.selectedOrder?.id === order.id) {
         this.selectedOrder = {...order};
       }
+
+      await this.authService.logAction('update_order', { order_id: order.id, action: 'mark_delivered' });
 
       alert('Pedido marcado como entregado');
       await this.loadOrders();
@@ -1642,6 +1663,8 @@ export class DashboardComponent implements OnInit {
 
       if (error) throw error;
 
+      await this.authService.logAction('update_order', { order_id: order.id, action: 'approve_order' });
+
       alert('Pedido aprobado exitosamente. Ahora puede procesar los productos.');
       await this.loadPendingValidationOrders();
     } catch (error: any) {
@@ -1670,6 +1693,8 @@ export class DashboardComponent implements OnInit {
         .eq('id', order.id);
 
       if (error) throw error;
+
+      await this.authService.logAction('update_order', { order_id: order.id, action: 'reject_order', reason });
 
       alert('Pedido rechazado. Se ha notificado al vendedor.');
       await this.loadPendingValidationOrders();

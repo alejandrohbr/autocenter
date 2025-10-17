@@ -143,9 +143,8 @@
               <thead class="bg-gray-50">
                 <tr>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
                   <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                   <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
@@ -159,26 +158,24 @@
                       </div>
                       <div class="ml-4">
                         <div class="text-sm font-medium text-gray-900">{{ user.full_name }}</div>
-                        <div class="text-sm text-gray-500">{{ '@' + user.username }}</div>
+                        <div class="text-sm text-gray-500">{{ user.created_at | date:'short' }}</div>
                       </div>
                     </div>
                   </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ user.email }}
+                  </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                      [class.bg-red-100]="user.role === 'admin'"
-                      [class.text-red-800]="user.role === 'admin'"
-                      [class.bg-blue-100]="user.role === 'vendedor'"
-                      [class.text-blue-800]="user.role === 'vendedor'"
-                      [class.bg-green-100]="user.role === 'proveedor'"
-                      [class.text-green-800]="user.role === 'proveedor'">
+                      [ngClass]="{
+                        'bg-purple-100 text-purple-800': user.role === 'super_admin',
+                        'bg-indigo-100 text-indigo-800': user.role === 'admin_corporativo',
+                        'bg-blue-100 text-blue-800': user.role === 'gerente',
+                        'bg-green-100 text-green-800': user.role === 'tecnico',
+                        'bg-yellow-100 text-yellow-800': user.role === 'asesor_tecnico'
+                      }">
                       {{ getRoleLabel(user.role) }}
                     </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ user.email || '-' }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ user.telefono || '-' }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-center">
                     <button
@@ -393,25 +390,23 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Usuario *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
             <input
-              type="text"
-              [(ngModel)]="newUser.username"
+              type="email"
+              [(ngModel)]="newUser.email"
               [disabled]="editingUser"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-              placeholder="jperez"
+              placeholder="correo@ejemplo.com"
             />
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              {{ editingUser ? 'Nueva Contraseña' : 'Contraseña *' }}
-            </label>
+          <div *ngIf="!editingUser">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label>
             <input
               type="password"
               [(ngModel)]="newUser.password"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              [placeholder]="editingUser ? 'Dejar vacío para no cambiar' : 'Ingrese contraseña'"
+              placeholder="Mínimo 6 caracteres"
             />
           </div>
 
@@ -421,40 +416,12 @@
               [(ngModel)]="newUser.role"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="vendedor">Vendedor</option>
-              <option value="admin">Administrador</option>
-              <option value="proveedor">Proveedor</option>
+              <option value="super_admin">Super Admin</option>
+              <option value="admin_corporativo">Admin Corporativo</option>
+              <option value="gerente">Gerente</option>
+              <option value="tecnico">Técnico</option>
+              <option value="asesor_tecnico">Asesor Técnico</option>
             </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              [(ngModel)]="newUser.email"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="juan.perez@empresa.com"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-            <input
-              type="tel"
-              [(ngModel)]="newUser.telefono"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="555-1234-5678"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
-            <input
-              type="text"
-              [(ngModel)]="newUser.departamento"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Ventas"
-            />
           </div>
 
           <div class="flex items-center">

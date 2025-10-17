@@ -2,18 +2,38 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { SupabaseService } from './supabase.service';
 
+export type UserRole = 'super_admin' | 'admin_corporativo' | 'gerente' | 'tecnico' | 'asesor_tecnico';
+
 export interface User {
   id: string;
-  username: string;
+  email: string;
   full_name: string;
-  role: 'admin' | 'vendedor' | 'proveedor';
-  email?: string;
-  telefono?: string;
-  departamento?: string;
-  is_active?: boolean;
+  role: UserRole;
+  is_active: boolean;
   created_at?: Date;
   updated_at?: Date;
   last_login?: Date;
+  created_by?: string;
+}
+
+export interface AuditLog {
+  id: string;
+  user_id: string;
+  action_type: string;
+  action_details: any;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: Date;
+}
+
+export interface UserSession {
+  id: string;
+  user_id: string;
+  session_start: Date;
+  session_end?: Date;
+  is_active: boolean;
+  ip_address?: string;
+  user_agent?: string;
 }
 
 export interface AuthState {
@@ -26,12 +46,26 @@ export interface AuthState {
 })
 export class AuthService {
   private currentUser: User | null = null;
+  private currentSessionId: string | null = null;
 
   constructor(
     private supabaseService: SupabaseService,
     private router: Router
   ) {
     this.loadUserFromStorage();
+    this.setupAuthStateListener();
+  }
+
+  private setupAuthStateListener() {
+    this.supabaseService.client.auth.onAuthStateChange((event, session) => {
+      (async () => {
+        if (event === 'SIGNED_IN' && session) {
+          await this.loadUserProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          this.handleLogout();
+        }
+      })();
+    });
   }
 
   private loadUserFromStorage() {
@@ -46,38 +80,50 @@ export class AuthService {
     }
   }
 
-  async login(username: string, password: string): Promise<{ success: boolean; message?: string; user?: User }> {
+  async login(email: string, password: string): Promise<{ success: boolean; message?: string; user?: User }> {
     try {
-      const { data, error } = await this.supabaseService.client
-        .from('users')
+      const { data: authData, error: authError } = await this.supabaseService.client.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (authError) {
+        console.error('Error during login:', authError);
+        return { success: false, message: 'Email o contraseña incorrectos' };
+      }
+
+      if (!authData.user) {
+        return { success: false, message: 'Error al autenticar usuario' };
+      }
+
+      const { data: profile, error: profileError } = await this.supabaseService.client
+        .from('user_profiles')
         .select('*')
-        .eq('username', username)
+        .eq('id', authData.user.id)
         .eq('is_active', true)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error during login:', error);
-        return { success: false, message: 'Error al conectar con el servidor' };
-      }
-
-      if (!data) {
-        return { success: false, message: 'Usuario no encontrado' };
-      }
-
-      if (data.password_hash !== password) {
-        return { success: false, message: 'Contraseña incorrecta' };
+      if (profileError || !profile) {
+        await this.supabaseService.client.auth.signOut();
+        return { success: false, message: 'Usuario inactivo o no encontrado' };
       }
 
       const user: User = {
-        id: data.id,
-        username: data.username,
-        full_name: data.full_name,
-        role: data.role,
-        email: data.email
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name,
+        role: profile.role,
+        is_active: profile.is_active,
+        last_login: profile.last_login,
+        created_at: profile.created_at,
+        updated_at: profile.updated_at,
+        created_by: profile.created_by
       };
 
       this.currentUser = user;
       localStorage.setItem('currentUser', JSON.stringify(user));
+
+      await this.startSession();
 
       return { success: true, user };
     } catch (error) {
@@ -86,9 +132,71 @@ export class AuthService {
     }
   }
 
-  logout() {
+  async loadUserProfile(userId: string): Promise<void> {
+    const { data: profile } = await this.supabaseService.client
+      .from('user_profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profile) {
+      this.currentUser = {
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name,
+        role: profile.role,
+        is_active: profile.is_active,
+        last_login: profile.last_login,
+        created_at: profile.created_at,
+        updated_at: profile.updated_at,
+        created_by: profile.created_by
+      };
+      localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+    }
+  }
+
+  private async startSession(): Promise<void> {
+    try {
+      const { data, error } = await this.supabaseService.client
+        .rpc('start_user_session', {
+          p_user_id: this.currentUser?.id,
+          p_ip_address: null,
+          p_user_agent: navigator.userAgent
+        });
+
+      if (!error && data) {
+        this.currentSessionId = data;
+        localStorage.setItem('currentSessionId', data);
+      }
+    } catch (error) {
+      console.error('Error starting session:', error);
+    }
+  }
+
+  private async endSession(): Promise<void> {
+    if (this.currentSessionId) {
+      try {
+        await this.supabaseService.client
+          .rpc('end_user_session', {
+            p_session_id: this.currentSessionId
+          });
+      } catch (error) {
+        console.error('Error ending session:', error);
+      }
+    }
+  }
+
+  async logout() {
+    await this.endSession();
+    await this.supabaseService.client.auth.signOut();
+    this.handleLogout();
+  }
+
+  private handleLogout() {
     this.currentUser = null;
+    this.currentSessionId = null;
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('currentSessionId');
     this.router.navigate(['/login']);
   }
 
@@ -100,34 +208,214 @@ export class AuthService {
     return this.currentUser !== null;
   }
 
-  isAdmin(): boolean {
-    return this.currentUser?.role === 'admin';
+  isSuperAdmin(): boolean {
+    return this.currentUser?.role === 'super_admin' && this.currentUser?.is_active === true;
   }
 
-  isVendedor(): boolean {
-    return this.currentUser?.role === 'vendedor';
+  isAdminCorporativo(): boolean {
+    return this.currentUser?.role === 'admin_corporativo' && this.currentUser?.is_active === true;
   }
 
-  hasPermission(permission: 'delete_orders' | 'authorize_orders' | 'view_reports'): boolean {
-    if (!this.currentUser) return false;
+  isGerente(): boolean {
+    return this.currentUser?.role === 'gerente' && this.currentUser?.is_active === true;
+  }
 
-    if (this.currentUser.role === 'admin') {
-      return true;
+  isTecnico(): boolean {
+    return this.currentUser?.role === 'tecnico' && this.currentUser?.is_active === true;
+  }
+
+  isAsesorTecnico(): boolean {
+    return this.currentUser?.role === 'asesor_tecnico' && this.currentUser?.is_active === true;
+  }
+
+  canManageUsers(): boolean {
+    return this.isSuperAdmin() || this.isAdminCorporativo();
+  }
+
+  canViewAudit(): boolean {
+    return this.isSuperAdmin();
+  }
+
+  canCreateOrders(): boolean {
+    return this.isTecnico() || this.isAsesorTecnico() || this.isGerente() || this.canManageUsers();
+  }
+
+  canViewReports(): boolean {
+    return this.isGerente() || this.canManageUsers();
+  }
+
+  canManageRole(targetRole: UserRole): boolean {
+    if (this.isSuperAdmin()) return true;
+    if (this.isAdminCorporativo()) {
+      return ['gerente', 'tecnico', 'asesor_tecnico'].includes(targetRole);
     }
-
-    if (this.currentUser.role === 'vendedor') {
-      switch (permission) {
-        case 'delete_orders':
-          return false;
-        case 'authorize_orders':
-          return false;
-        case 'view_reports':
-          return true;
-        default:
-          return false;
-      }
-    }
-
     return false;
+  }
+
+  async logAction(actionType: string, actionDetails: any = {}): Promise<void> {
+    if (!this.currentUser) return;
+
+    try {
+      await this.supabaseService.client
+        .rpc('log_audit_action', {
+          p_user_id: this.currentUser.id,
+          p_action_type: actionType,
+          p_action_details: actionDetails,
+          p_ip_address: null,
+          p_user_agent: navigator.userAgent
+        });
+    } catch (error) {
+      console.error('Error logging action:', error);
+    }
+  }
+
+  async createUser(userData: { email: string; password: string; full_name: string; role: UserRole }): Promise<{ success: boolean; message?: string; user?: any }> {
+    if (!this.canManageUsers()) {
+      return { success: false, message: 'No tienes permisos para crear usuarios' };
+    }
+
+    if (!this.canManageRole(userData.role)) {
+      return { success: false, message: 'No tienes permisos para crear usuarios con este rol' };
+    }
+
+    try {
+      const { data: authData, error: authError } = await this.supabaseService.client.auth.admin.createUser({
+        email: userData.email,
+        password: userData.password,
+        email_confirm: true
+      });
+
+      if (authError || !authData.user) {
+        return { success: false, message: authError?.message || 'Error al crear usuario' };
+      }
+
+      const { data: profile, error: profileError } = await this.supabaseService.client
+        .from('user_profiles')
+        .insert({
+          id: authData.user.id,
+          email: userData.email,
+          full_name: userData.full_name,
+          role: userData.role,
+          is_active: true,
+          created_by: this.currentUser?.id
+        })
+        .select()
+        .single();
+
+      if (profileError) {
+        return { success: false, message: 'Error al crear perfil de usuario' };
+      }
+
+      await this.logAction('create_user', { created_user_id: authData.user.id, role: userData.role });
+
+      return { success: true, user: profile };
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return { success: false, message: 'Error inesperado al crear usuario' };
+    }
+  }
+
+  async updateUser(userId: string, updates: Partial<User>): Promise<{ success: boolean; message?: string }> {
+    if (!this.canManageUsers()) {
+      return { success: false, message: 'No tienes permisos para actualizar usuarios' };
+    }
+
+    try {
+      const { error } = await this.supabaseService.client
+        .from('user_profiles')
+        .update(updates)
+        .eq('id', userId);
+
+      if (error) {
+        return { success: false, message: 'Error al actualizar usuario' };
+      }
+
+      await this.logAction('update_user', { updated_user_id: userId, updates });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return { success: false, message: 'Error inesperado al actualizar usuario' };
+    }
+  }
+
+  async toggleUserStatus(userId: string, isActive: boolean): Promise<{ success: boolean; message?: string }> {
+    const result = await this.updateUser(userId, { is_active: isActive });
+    if (result.success) {
+      await this.logAction(isActive ? 'activate_user' : 'deactivate_user', { user_id: userId });
+    }
+    return result;
+  }
+
+  async deleteUser(userId: string): Promise<{ success: boolean; message?: string }> {
+    if (!this.canManageUsers()) {
+      return { success: false, message: 'No tienes permisos para eliminar usuarios' };
+    }
+
+    try {
+      const { error } = await this.supabaseService.client.auth.admin.deleteUser(userId);
+
+      if (error) {
+        return { success: false, message: 'Error al eliminar usuario' };
+      }
+
+      await this.logAction('delete_user', { deleted_user_id: userId });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return { success: false, message: 'Error inesperado al eliminar usuario' };
+    }
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    try {
+      const { data, error } = await this.supabaseService.client
+        .from('user_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      return [];
+    }
+  }
+
+  async getAuditLogs(limit: number = 100): Promise<AuditLog[]> {
+    if (!this.canViewAudit()) return [];
+
+    try {
+      const { data, error } = await this.supabaseService.client
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      return [];
+    }
+  }
+
+  async getActiveSessions(): Promise<UserSession[]> {
+    if (!this.canViewAudit()) return [];
+
+    try {
+      const { data, error } = await this.supabaseService.client
+        .from('user_sessions')
+        .select('*')
+        .eq('is_active', true)
+        .order('session_start', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching active sessions:', error);
+      return [];
+    }
   }
 }

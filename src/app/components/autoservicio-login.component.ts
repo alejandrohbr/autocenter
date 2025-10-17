@@ -17,30 +17,20 @@ export class AutoservicioLoginComponent {
     private authService: AuthService
   ) {}
 
-  tipoUsuario: string = 'vendedor';
-  userName: string = '';
+  email: string = '';
   password: string = '';
   errorMessage: string = '';
   isLoading: boolean = false;
-
-  tiposUsuario = [
-    { value: 'admin', text: 'Administrador' },
-    { value: 'vendedor', text: 'Vendedor' }
-  ];
 
   goBack() {
     this.router.navigate(['/']);
   }
 
-  onTipoUsuarioChange() {
-    this.errorMessage = '';
-  }
-
   async onLogin() {
     this.errorMessage = '';
 
-    if (!this.userName.trim()) {
-      this.errorMessage = 'Por favor ingrese su usuario';
+    if (!this.email.trim()) {
+      this.errorMessage = 'Por favor ingrese su email';
       return;
     }
 
@@ -52,17 +42,12 @@ export class AutoservicioLoginComponent {
     this.isLoading = true;
 
     try {
-      const result = await this.authService.login(this.userName, this.password);
+      const result = await this.authService.login(this.email, this.password);
 
       if (result.success && result.user) {
-        if (result.user.role === this.tipoUsuario) {
-          this.router.navigate(['/autoservicio-dashboard']);
-        } else {
-          this.errorMessage = `Este usuario tiene rol de ${result.user.role}, pero seleccionaste ${this.tipoUsuario}`;
-          this.authService.logout();
-        }
+        this.router.navigate(['/dashboard']);
       } else {
-        this.errorMessage = result.message || 'Usuario o contraseña incorrectos';
+        this.errorMessage = result.message || 'Email o contraseña incorrectos';
       }
     } catch (error) {
       console.error('Error during login:', error);
