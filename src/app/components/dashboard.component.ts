@@ -175,6 +175,42 @@ export class DashboardComponent implements OnInit {
     this.filterOrders();
     if (this.auth.isSuperAdmin()) {
       await this.loadPendingValidationOrders();
+      await this.loadAdminStats();
+    }
+  }
+
+  adminStats = {
+    totalUsers: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+    pendingOrders: 0,
+    activeUsers: 0,
+    totalCustomers: 0
+  };
+
+  async loadAdminStats() {
+    try {
+      const { data: users } = await this.supabaseService.client
+        .from('users')
+        .select('*', { count: 'exact' });
+
+      const { data: customers } = await this.supabaseService.client
+        .from('customers')
+        .select('*', { count: 'exact' });
+
+      const totalRevenue = this.orders.reduce((sum, order) => sum + (order.presupuesto || 0), 0);
+      const pendingOrders = this.orders.filter(o => o.status === 'Pendiente de Autorización').length;
+
+      this.adminStats = {
+        totalUsers: users?.length || 0,
+        totalOrders: this.orders.length,
+        totalRevenue: totalRevenue,
+        pendingOrders: pendingOrders,
+        activeUsers: users?.filter((u: any) => u.is_active).length || 0,
+        totalCustomers: customers?.length || 0
+      };
+    } catch (error) {
+      console.error('Error cargando estadísticas admin:', error);
     }
   }
 

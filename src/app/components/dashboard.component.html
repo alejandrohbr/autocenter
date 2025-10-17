@@ -93,6 +93,105 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
     <div *ngIf="activeView === 'dashboard'">
+      <!-- Super Admin Stats -->
+      <div *ngIf="auth.isSuperAdmin()" class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Panel de Administración</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-600">Total Usuarios</p>
+                  <p class="text-3xl font-bold text-gray-900 mt-2">{{ adminStats.totalUsers }}</p>
+                  <p class="text-sm text-green-600 mt-1">{{ adminStats.activeUsers }} activos</p>
+                </div>
+                <div class="bg-blue-100 rounded-full p-3">
+                  <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-600">Total Pedidos</p>
+                  <p class="text-3xl font-bold text-gray-900 mt-2">{{ adminStats.totalOrders }}</p>
+                  <p class="text-sm text-yellow-600 mt-1">{{ adminStats.pendingOrders }} pendientes</p>
+                </div>
+                <div class="bg-green-100 rounded-full p-3">
+                  <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-600">Ingresos Totales</p>
+                  <p class="text-3xl font-bold text-gray-900 mt-2">${{ adminStats.totalRevenue | number:'1.2-2' }}</p>
+                  <p class="text-sm text-gray-600 mt-1">{{ adminStats.totalCustomers }} clientes</p>
+                </div>
+                <div class="bg-purple-100 rounded-full p-3">
+                  <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions for Admin -->
+        <div class="bg-white shadow-sm rounded-xl border border-gray-200 p-6 mb-8">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button
+              (click)="goToUserManagement()"
+              class="flex items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+              <svg class="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+              <div class="text-left">
+                <p class="font-semibold text-gray-900">Gestionar Usuarios</p>
+                <p class="text-sm text-gray-600">Crear y administrar usuarios</p>
+              </div>
+            </button>
+
+            <button
+              (click)="goToAudit()"
+              class="flex items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
+              <svg class="w-6 h-6 text-purple-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <div class="text-left">
+                <p class="font-semibold text-gray-900">Ver Auditoría</p>
+                <p class="text-sm text-gray-600">Registro de actividades</p>
+              </div>
+            </button>
+
+            <button
+              (click)="setActiveView('admin-validation')"
+              class="flex items-center p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors">
+              <svg class="w-6 h-6 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div class="text-left">
+                <p class="font-semibold text-gray-900">Validar Pedidos</p>
+                <p class="text-sm text-gray-600">{{ pendingValidationCount }} pendientes</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <div *ngFor="let stat of stats" class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
