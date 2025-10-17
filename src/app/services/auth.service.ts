@@ -256,7 +256,7 @@ export class AuthService {
   }
 
   canCreateOrders(): boolean {
-    return this.isTecnico() || this.isAsesorTecnico() || this.isGerente() || this.canManageUsers();
+    return this.isAuthenticated();
   }
 
   canViewReports(): boolean {
