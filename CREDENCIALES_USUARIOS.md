@@ -30,10 +30,14 @@ Como el Super Admin no aparece en el selector de roles, debe ser creado directam
 Una vez creado el Super Admin:
 
 1. Ve a la aplicación: http://localhost:4200/login
-2. Ingresa:
+2. **Selecciona cualquier tipo de usuario** del dropdown (Admin Corporativo, Gerente, Técnico o Asesor)
+   - No importa cuál selecciones, el Super Admin puede acceder con cualquiera
+3. Ingresa:
    - **Email**: `super@sears.com`
    - **Password**: `123`
-3. Haz clic en **Iniciar Sesión**
+4. Haz clic en **Iniciar Sesión**
+
+⚠️ **Importante**: El Super Admin NO aparece en el selector de tipos de usuario del login, pero puede acceder seleccionando cualquier opción.
 
 ### 3. Crear los Demás Usuarios
 

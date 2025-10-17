@@ -17,13 +17,25 @@ export class AutoservicioLoginComponent {
     private authService: AuthService
   ) {}
 
+  tipoUsuario: string = 'tecnico';
   email: string = '';
   password: string = '';
   errorMessage: string = '';
   isLoading: boolean = false;
 
+  tiposUsuario = [
+    { value: 'admin_corporativo', text: 'Admin Corporativo' },
+    { value: 'gerente', text: 'Gerente' },
+    { value: 'tecnico', text: 'Técnico' },
+    { value: 'asesor_tecnico', text: 'Asesor Técnico' }
+  ];
+
   goBack() {
     this.router.navigate(['/']);
+  }
+
+  onTipoUsuarioChange() {
+    this.errorMessage = '';
   }
 
   async onLogin() {
@@ -45,7 +57,12 @@ export class AutoservicioLoginComponent {
       const result = await this.authService.login(this.email, this.password);
 
       if (result.success && result.user) {
-        this.router.navigate(['/dashboard']);
+        if (result.user.role === this.tipoUsuario || result.user.role === 'super_admin') {
+          this.router.navigate(['/dashboard']);
+        } else {
+          this.errorMessage = `Este usuario tiene rol de ${this.getRoleLabel(result.user.role)}, pero seleccionaste ${this.getRoleLabel(this.tipoUsuario as any)}`;
+          await this.authService.logout();
+        }
       } else {
         this.errorMessage = result.message || 'Email o contraseña incorrectos';
       }
@@ -55,5 +72,16 @@ export class AutoservicioLoginComponent {
     } finally {
       this.isLoading = false;
     }
+  }
+
+  getRoleLabel(role: string): string {
+    const labels: any = {
+      'super_admin': 'Super Admin',
+      'admin_corporativo': 'Admin Corporativo',
+      'gerente': 'Gerente',
+      'tecnico': 'Técnico',
+      'asesor_tecnico': 'Asesor Técnico'
+    };
+    return labels[role] || role;
   }
 }
