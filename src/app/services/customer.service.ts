@@ -168,6 +168,22 @@ export class CustomerService {
     return data;
   }
 
+  async updateVehicle(vehicleId: string, vehicle: Partial<Vehicle>): Promise<Vehicle> {
+    const { data, error } = await this.supabase.client
+      .from('vehicles')
+      .update(vehicle)
+      .eq('id', vehicleId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error actualizando vehículo:', error);
+      throw error;
+    }
+
+    return data;
+  }
+
   async getCustomerOrders(customerId: string): Promise<Order[]> {
     const { data, error } = await this.supabase.client
       .from('orders')

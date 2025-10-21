@@ -72,6 +72,8 @@ export class DashboardComponent implements OnInit {
   customerSelected = false;
   showVehicleSelector = false;
   showNewVehicleForm = false;
+  isEditingVehicle = false;
+  editingVehicleData: any = {};
   newVehicle: any = {
     placas: '',
     marca: '',
@@ -256,6 +258,10 @@ export class DashboardComponent implements OnInit {
     if (this.selectedCustomer?.id) {
       const vehicles = await this.customerService.getCustomerVehicles(this.selectedCustomer.id);
       this.customerVehicles = vehicles || [];
+    }
+
+    if (this.user?.autocenter) {
+      this.newOrder.tienda = this.user.autocenter;
     }
 
     if (this.selectedVehicle) {
@@ -983,8 +989,42 @@ export class DashboardComponent implements OnInit {
       modelo: '',
       anio: '',
       color: '',
+      numero_serie: '',
       kilometraje_inicial: null
     };
+  }
+
+  startEditingVehicle() {
+    if (this.selectedVehicle) {
+      this.editingVehicleData = { ...this.selectedVehicle };
+      this.isEditingVehicle = true;
+    }
+  }
+
+  async saveVehicleEdit() {
+    if (!this.selectedVehicle?.id) return;
+
+    try {
+      const updatedVehicle = await this.customerService.updateVehicle(
+        this.selectedVehicle.id,
+        this.editingVehicleData
+      );
+
+      if (updatedVehicle) {
+        this.selectedVehicle = updatedVehicle;
+        this.isEditingVehicle = false;
+        this.editingVehicleData = {};
+        alert('Vehículo actualizado exitosamente');
+      }
+    } catch (error) {
+      console.error('Error actualizando vehículo:', error);
+      alert('Error al actualizar el vehículo');
+    }
+  }
+
+  cancelVehicleEdit() {
+    this.isEditingVehicle = false;
+    this.editingVehicleData = {};
   }
 
   openDiagnosticModal() {
