@@ -113,8 +113,25 @@ export class DashboardComponent implements OnInit {
 
   orders: Order[] = [];
 
-  tiendas = ['Sucursal Centro', 'Sucursal Norte', 'Sucursal Sur', 'Sucursal Este'];
-  divisiones = ['Autoservicio', 'Refacciones', 'Taller', 'Llantas'];
+  tiendas = [
+    'Insurgentes Taller Mecanico',
+    'Universidad Taller Mecanico',
+    'Satelite Taller Mecanico',
+    'Lindavista Taller Mecanico',
+    'Monterrey Anahuac Taller Mecanico',
+    'Monterrey Centro Taller Mecanico',
+    'Guadalajara Centro Taller Mecanico',
+    'Puebla Centro Taller Mecanico',
+    'Cuernavaca Taller Mecanico',
+    'Gomez Palacio Taller Mecanico',
+    'Leon Plaza Taller Mecanico',
+    'Pachuca Outlet Taller Mecanico',
+    'Celaya Taller Mecanico',
+    'Queretaro Plaza Taller Mecanico',
+    'Neza (CD Jardin) Taller Mecanico',
+    'Cuautitlan Izcalli Taller Mecanico'
+  ];
+  divisiones = ['REFACCIONES PARA AUTO', 'SERVICIOS AUTOMOTRICES INTERNOS'];
 
   serviceCategories: string[] = SERVICE_CATEGORIES;
   availableServices: ServiceDefinition[] = [];

@@ -75,7 +75,7 @@ import { AuthService, User, UserRole } from '../services/auth.service';
                     Rol
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    AutoCenter
+                    Centro Automotriz
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estado
@@ -197,18 +197,29 @@ import { AuthService, User, UserRole } from '../services/auth.service';
               </div>
 
               <div *ngIf="requiresAutocenter()">
-                <label class="block text-sm font-medium text-gray-700 mb-1">AutoCenter *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Centro Automotriz *</label>
                 <select
                   [(ngModel)]="formData.autocenter"
                   name="autocenter"
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Seleccionar AutoCenter...</option>
-                  <option value="insurgentes">Insurgentes</option>
-                  <option value="monterrey">Monterrey</option>
-                  <option value="guadalajara">Guadalajara</option>
-                  <option value="puebla">Puebla</option>
-                  <option value="queretaro">Querétaro</option>
+                  <option value="">Seleccionar Centro Automotriz...</option>
+                  <option value="Insurgentes Taller Mecanico">Insurgentes Taller Mecanico</option>
+                  <option value="Universidad Taller Mecanico">Universidad Taller Mecanico</option>
+                  <option value="Satelite Taller Mecanico">Satelite Taller Mecanico</option>
+                  <option value="Lindavista Taller Mecanico">Lindavista Taller Mecanico</option>
+                  <option value="Monterrey Anahuac Taller Mecanico">Monterrey Anahuac Taller Mecanico</option>
+                  <option value="Monterrey Centro Taller Mecanico">Monterrey Centro Taller Mecanico</option>
+                  <option value="Guadalajara Centro Taller Mecanico">Guadalajara Centro Taller Mecanico</option>
+                  <option value="Puebla Centro Taller Mecanico">Puebla Centro Taller Mecanico</option>
+                  <option value="Cuernavaca Taller Mecanico">Cuernavaca Taller Mecanico</option>
+                  <option value="Gomez Palacio Taller Mecanico">Gomez Palacio Taller Mecanico</option>
+                  <option value="Leon Plaza Taller Mecanico">Leon Plaza Taller Mecanico</option>
+                  <option value="Pachuca Outlet Taller Mecanico">Pachuca Outlet Taller Mecanico</option>
+                  <option value="Celaya Taller Mecanico">Celaya Taller Mecanico</option>
+                  <option value="Queretaro Plaza Taller Mecanico">Queretaro Plaza Taller Mecanico</option>
+                  <option value="Neza (CD Jardin) Taller Mecanico">Neza (CD Jardin) Taller Mecanico</option>
+                  <option value="Cuautitlan Izcalli Taller Mecanico">Cuautitlan Izcalli Taller Mecanico</option>
                 </select>
               </div>
 
