@@ -1105,7 +1105,8 @@
         [customerId]="selectedCustomer?.id || ''"
         [hideVehicleSelection]="true"
         (diagnosticChange)="onDiagnosticChange($event)"
-        (vehicleSelected)="onVehicleSelected($event)">
+        (vehicleSelected)="onVehicleSelected($event)"
+        (cancelled)="closeDiagnosticModal()">
       </app-vehicle-diagnostic>
     </div>
   </div>
