@@ -78,6 +78,7 @@ export class DashboardComponent implements OnInit {
     modelo: '',
     anio: '',
     color: '',
+    numero_serie: '',
     kilometraje_inicial: null
   };
 
@@ -951,6 +952,7 @@ export class DashboardComponent implements OnInit {
         modelo: this.newVehicle.modelo,
         anio: this.newVehicle.anio,
         color: this.newVehicle.color || null,
+        numero_serie: this.newVehicle.numero_serie || null,
         kilometraje_inicial: this.newVehicle.kilometraje_inicial || null
       };
 

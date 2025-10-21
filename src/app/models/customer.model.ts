@@ -23,6 +23,7 @@ export interface Vehicle {
   anio: string;
   color?: string;
   vin?: string;
+  numero_serie?: string;
   kilometraje_inicial?: number;
   created_at?: Date;
   updated_at?: Date;

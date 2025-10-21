@@ -241,6 +241,7 @@ import { CustomerProfileComponent } from './customer-profile.component';
                     <p><span class="font-medium">Placas:</span> {{ vehicle.placas }}</p>
                     <p><span class="font-medium">Año:</span> {{ vehicle.anio }}</p>
                     <p *ngIf="vehicle.color"><span class="font-medium">Color:</span> {{ vehicle.color }}</p>
+                    <p *ngIf="vehicle.numero_serie"><span class="font-medium">N° Serie:</span> {{ vehicle.numero_serie }}</p>
                     <p *ngIf="vehicle.vin"><span class="font-medium">VIN:</span> {{ vehicle.vin }}</p>
                   </div>
                 </div>

@@ -58,7 +58,7 @@
           (click)="startNewOrder()"
           [class]="activeView === 'new-order' || activeView === 'customer-search' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
           class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-          Nuevo Pedido
+          Nuevo Presupuesto
         </button>
         <button
           (click)="viewLostSalesReport()"
@@ -118,7 +118,7 @@
             <div class="p-6">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-600">Total Pedidos</p>
+                  <p class="text-sm font-medium text-gray-600">Total Presupuestos</p>
                   <p class="text-3xl font-bold text-gray-900 mt-2">{{ adminStats.totalOrders }}</p>
                   <p class="text-sm text-yellow-600 mt-1">{{ adminStats.pendingOrders }} pendientes</p>
                 </div>
@@ -184,7 +184,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <div class="text-left">
-                <p class="font-semibold text-gray-900">Validar Pedidos</p>
+                <p class="font-semibold text-gray-900">Validar Presupuestos</p>
                 <p class="text-sm text-gray-600">{{ pendingValidationCount }} pendientes</p>
               </div>
             </button>
@@ -215,7 +215,7 @@
       <div class="bg-white shadow-sm rounded-xl border border-gray-200 p-6 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Buscar Pedido</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Buscar Presupuesto</label>
             <div class="relative">
               <input
                 type="text"
@@ -263,8 +263,8 @@
         <div class="px-6 py-4 border-b border-gray-200">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-lg font-semibold text-gray-900">Pedidos Recientes</h3>
-              <p class="mt-1 text-sm text-gray-500">{{ filteredOrders.length }} pedido(s) encontrado(s)</p>
+              <h3 class="text-lg font-semibold text-gray-900">Presupuestos Recientes</h3>
+              <p class="mt-1 text-sm text-gray-500">{{ filteredOrders.length }} presupuesto(s) encontrado(s)</p>
             </div>
             <div class="flex items-center space-x-2">
               <button
@@ -340,8 +340,8 @@
                   <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                   </svg>
-                  <h3 class="mt-2 text-sm font-medium text-gray-900">No hay pedidos</h3>
-                  <p class="mt-1 text-sm text-gray-500">No se encontraron pedidos con los filtros aplicados.</p>
+                  <h3 class="mt-2 text-sm font-medium text-gray-900">No hay presupuestos</h3>
+                  <p class="mt-1 text-sm text-gray-500">No se encontraron presupuestos con los filtros aplicados.</p>
                 </td>
               </tr>
             </tbody>
@@ -511,6 +511,15 @@
                 />
               </div>
               <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Número de Serie</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newVehicle.numero_serie"
+                  class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm px-2 py-1.5 border"
+                  placeholder="Número de serie del vehículo"
+                />
+              </div>
+              <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">Kilometraje Inicial</label>
                 <input
                   type="number"
@@ -556,7 +565,7 @@
 
       <div class="bg-white shadow rounded-lg">
         <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Crear Nuevo Pedido</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Crear Nuevo Presupuesto</h3>
 
           <form (ngSubmit)="onCreateOrder()" #orderForm="ngForm">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
@@ -954,7 +963,7 @@
                 [disabled]="!orderForm.valid || newOrder.productos.length === 0"
                 class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Crear Pedido
+                Crear Presupuesto
               </button>
             </div>
           </form>
@@ -975,9 +984,9 @@
                 <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                Pedidos Pendientes de Validación Admin
+                Presupuestos Pendientes de Validación Admin
               </h3>
-              <p class="mt-1 text-sm text-purple-700">{{ pendingValidationOrders.length }} pedido(s) esperando validación</p>
+              <p class="mt-1 text-sm text-purple-700">{{ pendingValidationOrders.length }} presupuesto(s) esperando validación</p>
             </div>
           </div>
         </div>
@@ -986,8 +995,8 @@
           <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay pedidos pendientes</h3>
-          <p class="text-gray-600">Todos los pedidos han sido validados</p>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay presupuestos pendientes</h3>
+          <p class="text-gray-600">Todos los presupuestos han sido validados</p>
         </div>
 
         <div *ngIf="pendingValidationOrders.length > 0" class="divide-y divide-gray-200">
@@ -1107,7 +1116,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700">
       <div>
-        <h3 class="text-xl font-bold text-white">Detalle del Pedido</h3>
+        <h3 class="text-xl font-bold text-white">Detalle del Presupuesto</h3>
         <p class="text-sm text-blue-100 mt-0.5" *ngIf="selectedOrder">Folio: {{ selectedOrder.folio }} - {{ selectedOrder.cliente }}</p>
       </div>
       <button (click)="closeOrderDetail()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors">
@@ -1195,13 +1204,13 @@
       <!-- Info Tab -->
       <div *ngIf="detailActiveTab === 'info'">
         <div class="space-y-6">
-          <!-- Información del Pedido -->
+          <!-- Información del Presupuesto -->
           <div class="bg-white border-2 border-blue-200 rounded-xl p-6">
             <h3 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
-              Información del Pedido
+              Información del Presupuesto
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div class="bg-blue-50 rounded-lg p-4">
@@ -1323,7 +1332,7 @@
       <div *ngIf="detailActiveTab === 'products'">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">Productos del Pedido</h3>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Productos del Presupuesto</h3>
             <div *ngIf="!isEditingProducts && selectedOrder.productos && selectedOrder.productos.length > 0" class="flex items-center gap-2">
               <span class="text-sm text-gray-600">Tipo de Pago / Margen:</span>
               <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm">
@@ -1347,7 +1356,7 @@
           <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
           </svg>
-          <p class="text-gray-600">No hay productos en este pedido</p>
+          <p class="text-gray-600">No hay productos en este presupuesto</p>
         </div>
 
         <div *ngIf="!isEditingProducts && selectedOrder.productos && selectedOrder.productos.length > 0" class="overflow-x-auto">
@@ -1994,7 +2003,7 @@
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
             </svg>
-            <span class="font-semibold">Este pedido requiere autorización del administrador para generar la Orden de Compra</span>
+            <span class="font-semibold">Este presupuesto requiere autorización del administrador para generar la Orden de Compra</span>
           </div>
         </div>
         <button
