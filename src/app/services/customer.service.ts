@@ -358,6 +358,44 @@ export class CustomerService {
     return data || [];
   }
 
+  async getCustomer(customerId: string): Promise<Customer> {
+    const { data, error } = await this.supabase.client
+      .from('customers')
+      .select('*')
+      .eq('id', customerId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error obteniendo cliente:', error);
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Cliente no encontrado');
+    }
+
+    return data;
+  }
+
+  async getVehicle(vehicleId: string): Promise<Vehicle> {
+    const { data, error } = await this.supabase.client
+      .from('vehicles')
+      .select('*')
+      .eq('id', vehicleId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error obteniendo vehículo:', error);
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Vehículo no encontrado');
+    }
+
+    return data;
+  }
+
   async getCustomerVehicles(customerId: string): Promise<any[]> {
     const { data, error } = await this.supabase.client
       .from('vehicles')

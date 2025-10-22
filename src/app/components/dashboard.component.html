@@ -685,7 +685,7 @@
             </div>
 
             <div class="border-t border-gray-200 pt-4">
-              <h4 class="text-lg font-medium text-gray-900 mb-4">Productos</h4>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">Refacciones</h4>
 
               <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <div class="mb-4">
@@ -1009,7 +1009,7 @@
               <div class="flex justify-end">
                 <div class="w-64">
                   <div class="flex justify-between py-2">
-                    <span class="text-sm text-gray-600">Productos:</span>
+                    <span class="text-sm text-gray-600">Refacciones:</span>
                     <span class="text-sm font-medium">${{ getProductsTotal().toFixed(2) }}</span>
                   </div>
                   <div class="flex justify-between py-2">
@@ -1103,13 +1103,13 @@
                     <p class="text-sm font-bold text-green-600">${{ order.presupuesto | number:'1.2-2' }}</p>
                   </div>
                   <div>
-                    <p class="text-xs text-gray-500 font-medium">Productos XML</p>
+                    <p class="text-xs text-gray-500 font-medium">Refacciones XML</p>
                     <p class="text-sm font-bold text-blue-600">{{ order.xmlProducts?.length || 0 }} productos</p>
                   </div>
                 </div>
 
                 <div *ngIf="order.xmlProducts && order.xmlProducts.length > 0" class="bg-gray-50 rounded-lg p-4 mb-4">
-                  <h5 class="text-sm font-semibold text-gray-900 mb-2">Resumen de Productos</h5>
+                  <h5 class="text-sm font-semibold text-gray-900 mb-2">Resumen de Refacciones</h5>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div *ngFor="let product of order.xmlProducts.slice(0, 4)" class="text-xs">
                       <span class="text-gray-600">{{ product.descripcion }}</span>
@@ -1228,7 +1228,7 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
           </svg>
-          Productos ({{ selectedOrder?.productos?.length || 0 }})
+          Refacciones ({{ selectedOrder?.productos?.length || 0 }})
         </button>
         <button
           (click)="detailActiveTab = 'services'"
@@ -1268,7 +1268,7 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
           </svg>
-          Productos XML ({{ xmlProducts.length }})
+          Refacciones XML ({{ xmlProducts.length }})
         </button>
       </nav>
     </div>
@@ -1435,7 +1435,7 @@
       <div *ngIf="detailActiveTab === 'products'">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">Productos del Presupuesto</h3>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Refacciones del Presupuesto</h3>
             <div *ngIf="!isEditingProducts && selectedOrder.productos && selectedOrder.productos.length > 0" class="flex items-center gap-2">
               <span class="text-sm text-gray-600">Tipo de Pago / Margen:</span>
               <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm">
@@ -1451,7 +1451,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
             </svg>
-            Editar Productos
+            Editar Refacciones
           </button>
         </div>
 
@@ -1459,7 +1459,7 @@
           <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
           </svg>
-          <p class="text-gray-600">No hay productos en este presupuesto</p>
+          <p class="text-gray-600">No hay refacciones en este presupuesto</p>
         </div>
 
         <div *ngIf="!isEditingProducts && selectedOrder.productos && selectedOrder.productos.length > 0" class="overflow-x-auto">
@@ -1490,7 +1490,7 @@
             </tbody>
             <tfoot class="bg-gray-50">
               <tr>
-                <td colspan="7" class="py-3 px-4 text-right font-semibold text-gray-900">Total Productos:</td>
+                <td colspan="7" class="py-3 px-4 text-right font-semibold text-gray-900">Total Refacciones:</td>
                 <td class="py-3 px-4 text-right font-bold text-lg text-blue-600">${{ getOrderProductsTotal(selectedOrder) | number:'1.2-2' }}</td>
               </tr>
             </tfoot>
@@ -1649,7 +1649,7 @@
             </tbody>
             <tfoot class="bg-gray-50">
               <tr>
-                <td colspan="7" class="py-3 px-3 text-right font-semibold text-gray-900">Total Productos:</td>
+                <td colspan="7" class="py-3 px-3 text-right font-semibold text-gray-900">Total Refacciones:</td>
                 <td class="py-3 px-3 text-right font-bold text-lg text-blue-600">
                   ${{ getTotalEditingProducts() | number:'1.2-2' }}
                 </td>
@@ -2041,7 +2041,7 @@
           <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
           </svg>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay productos XML</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay refacciones XML</h3>
           <p class="text-gray-600">Carga facturas XML para ver los productos aquí</p>
         </div>
       </div>

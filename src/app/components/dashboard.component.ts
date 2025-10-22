@@ -48,6 +48,8 @@ export class DashboardComponent implements OnInit {
   showBudgetPreview = false;
   showDiagnosticModal = false;
   selectedOrder: Order | null = null;
+  selectedOrderCustomer: Customer | null = null;
+  selectedOrderVehicle: Vehicle | null = null;
   isEditingDiagnostic = false;
   editingDiagnosticData: VehicleDiagnostic | null = null;
   detailActiveTab: 'info' | 'products' | 'services' | 'diagnostic' | 'xml-products' = 'info';
@@ -246,7 +248,8 @@ export class DashboardComponent implements OnInit {
           marca: order.vehicle.marca,
           modelo: order.vehicle.modelo,
           anio: order.vehicle.anio,
-          color: order.vehicle.color
+          color: order.vehicle.color,
+          numero_serie: order.vehicle.numero_serie
         } : undefined
       }));
       this.filterOrders();
@@ -345,12 +348,33 @@ export class DashboardComponent implements OnInit {
   async viewOrderDetail(order: Order) {
     this.selectedOrder = order;
     this.showOrderDetail = true;
+
+    if (order.customer_id) {
+      try {
+        const customer = await this.customerService.getCustomer(order.customer_id);
+        this.selectedOrderCustomer = customer;
+      } catch (error) {
+        console.error('Error cargando datos del cliente:', error);
+      }
+    }
+
+    if (order.vehicle_id) {
+      try {
+        const vehicle = await this.customerService.getVehicle(order.vehicle_id);
+        this.selectedOrderVehicle = vehicle;
+      } catch (error) {
+        console.error('Error cargando datos del vehículo:', error);
+      }
+    }
+
     await this.loadOrderXmlProducts(order);
   }
 
   closeOrderDetail() {
     this.showOrderDetail = false;
     this.selectedOrder = null;
+    this.selectedOrderCustomer = null;
+    this.selectedOrderVehicle = null;
     this.detailActiveTab = 'info';
     this.isEditingProducts = false;
     this.isEditingServices = false;
@@ -617,12 +641,12 @@ export class DashboardComponent implements OnInit {
     return hasContent && !isAlreadyAuthorized;
   }
 
-  getCustomerData(order: Order): any {
-    return this.orders.find(o => o.id === order.id);
+  getCustomerData(order: Order): Customer | null {
+    return this.selectedOrderCustomer;
   }
 
-  getVehicleData(order: Order): any {
-    return order.vehiculo;
+  getVehicleData(order: Order): Vehicle | null {
+    return this.selectedOrderVehicle;
   }
 
   addProduct() {
