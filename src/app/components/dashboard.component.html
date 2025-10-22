@@ -1322,6 +1322,14 @@
                 <p class="text-xs text-gray-700 font-semibold mb-1">TÉCNICO</p>
                 <p class="text-sm font-bold text-gray-900">{{ selectedOrder.technician_name }}</p>
               </div>
+              <div class="bg-slate-50 rounded-lg p-4">
+                <p class="text-xs text-slate-700 font-semibold mb-1">N° TÉCNICO</p>
+                <p class="text-sm font-bold text-slate-900">{{ selectedOrder.technician_number || 'N/A' }}</p>
+              </div>
+              <div class="bg-amber-50 rounded-lg p-4">
+                <p class="text-xs text-amber-700 font-semibold mb-1">N° ORDEN DE COMPRA</p>
+                <p class="text-sm font-bold text-amber-900">{{ selectedOrder.purchase_order_number || 'N/A' }}</p>
+              </div>
             </div>
           </div>
 
@@ -1347,8 +1355,24 @@
                 <p class="text-sm font-bold text-teal-900">{{ getCustomerData(selectedOrder)?.email }}</p>
               </div>
               <div *ngIf="getCustomerData(selectedOrder)?.direccion" class="bg-cyan-50 rounded-lg p-4 md:col-span-2 lg:col-span-3">
-                <p class="text-xs text-cyan-700 font-semibold mb-1">DIRECCIÓN</p>
+                <p class="text-xs text-cyan-700 font-semibold mb-1">DIRECCIÓN COMPLETA</p>
                 <p class="text-sm font-bold text-cyan-900">{{ getCustomerData(selectedOrder)?.direccion }}</p>
+              </div>
+              <div *ngIf="getCustomerData(selectedOrder)?.colonia" class="bg-sky-50 rounded-lg p-4">
+                <p class="text-xs text-sky-700 font-semibold mb-1">COLONIA</p>
+                <p class="text-sm font-bold text-sky-900">{{ getCustomerData(selectedOrder)?.colonia }}</p>
+              </div>
+              <div *ngIf="getCustomerData(selectedOrder)?.ciudad" class="bg-blue-50 rounded-lg p-4">
+                <p class="text-xs text-blue-700 font-semibold mb-1">CIUDAD</p>
+                <p class="text-sm font-bold text-blue-900">{{ getCustomerData(selectedOrder)?.ciudad }}</p>
+              </div>
+              <div *ngIf="getCustomerData(selectedOrder)?.estado" class="bg-indigo-50 rounded-lg p-4">
+                <p class="text-xs text-indigo-700 font-semibold mb-1">ESTADO</p>
+                <p class="text-sm font-bold text-indigo-900">{{ getCustomerData(selectedOrder)?.estado }}</p>
+              </div>
+              <div *ngIf="getCustomerData(selectedOrder)?.codigo_postal" class="bg-violet-50 rounded-lg p-4">
+                <p class="text-xs text-violet-700 font-semibold mb-1">C.P.</p>
+                <p class="text-sm font-bold text-violet-900">{{ getCustomerData(selectedOrder)?.codigo_postal }}</p>
               </div>
               <div *ngIf="getCustomerData(selectedOrder)?.rfc" class="bg-lime-50 rounded-lg p-4">
                 <p class="text-xs text-lime-700 font-semibold mb-1">RFC</p>
@@ -1389,6 +1413,10 @@
               <div class="bg-fuchsia-50 rounded-lg p-4">
                 <p class="text-xs text-fuchsia-700 font-semibold mb-1">COLOR</p>
                 <p class="text-lg font-bold text-fuchsia-900">{{ selectedOrder.vehiculo?.color || getVehicleData(selectedOrder)?.color || 'N/A' }}</p>
+              </div>
+              <div *ngIf="getVehicleData(selectedOrder)?.numero_serie || selectedOrder.vehiculo?.numero_serie" class="bg-indigo-50 rounded-lg p-4">
+                <p class="text-xs text-indigo-700 font-semibold mb-1">N° SERIE</p>
+                <p class="text-sm font-bold text-indigo-900">{{ getVehicleData(selectedOrder)?.numero_serie || selectedOrder.vehiculo?.numero_serie || 'N/A' }}</p>
               </div>
               <div *ngIf="getVehicleData(selectedOrder)?.kilometraje_inicial" class="bg-amber-50 rounded-lg p-4">
                 <p class="text-xs text-amber-700 font-semibold mb-1">KILOMETRAJE</p>

@@ -118,6 +118,7 @@ export interface Order {
     modelo?: string;
     anio?: string;
     color?: string;
+    numero_serie?: string;
   };
   tienda: string;
   division: string;
@@ -141,6 +142,8 @@ export interface Order {
   diagnostic_authorizations?: DiagnosticItemAuthorization[];
   invoices?: OrderInvoice[];
   technician_name?: string;
+  technician_number?: string;
+  purchase_order_number?: string;
   created_at?: Date;
   updated_at?: Date;
   isProcessingXml?: boolean;

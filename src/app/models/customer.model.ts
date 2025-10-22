@@ -7,8 +7,12 @@ export interface Customer {
   telefono: string;
   email?: string;
   rfc?: string;
+  razon_social?: string;
   direccion?: string;
+  colonia?: string;
   ciudad?: string;
+  estado?: string;
+  codigo_postal?: string;
   notas?: string;
   created_at?: Date;
   updated_at?: Date;
