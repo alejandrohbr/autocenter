@@ -349,6 +349,11 @@ export class DashboardComponent implements OnInit {
     this.selectedOrder = order;
     this.showOrderDetail = true;
 
+    // Inicializar el tipo de pago si existe
+    if (order.productos && order.productos.length > 0 && order.productos[0].porcentaje) {
+      this.selectedPaymentTypeEdit = order.productos[0].porcentaje.toString();
+    }
+
     if (order.customer_id) {
       try {
         const customer = await this.customerService.getCustomer(order.customer_id);

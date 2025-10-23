@@ -835,7 +835,7 @@
 
             <div class="border-t border-gray-200 pt-4">
               <div class="flex items-center justify-between mb-4">
-                <h4 class="text-lg font-medium text-gray-900">Servicios</h4>
+                <h4 class="text-lg font-medium text-gray-900">Mano de Obra</h4>
                 <button
                   type="button"
                   (click)="showServicesSection = !showServicesSection"
@@ -1202,6 +1202,7 @@
         [diagnostic]="newOrder.diagnostic!"
         [customerId]="selectedCustomer?.id || ''"
         [hideVehicleSelection]="true"
+        [currentUserName]="user?.full_name"
         (diagnosticChange)="onDiagnosticChange($event)"
         (vehicleSelected)="onVehicleSelected($event)"
         (cancelled)="closeDiagnosticModal()">
@@ -1265,7 +1266,7 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
           </svg>
-          Servicios ({{ selectedOrder ? getTotalServicesCount(selectedOrder) : 0 }})
+          Mano de Obra ({{ selectedOrder ? getTotalServicesCount(selectedOrder) : 0 }})
         </button>
         <button
           (click)="detailActiveTab = 'diagnostic'"
@@ -1692,7 +1693,7 @@
       <!-- Services Tab -->
       <div *ngIf="detailActiveTab === 'services'">
         <div class="mb-4 flex items-center justify-between">
-          <h3 class="text-xl font-bold text-gray-900">Servicios Seleccionados</h3>
+          <h3 class="text-xl font-bold text-gray-900">Mano de Obra Seleccionada</h3>
           <button
             *ngIf="!isEditingServices"
             (click)="startEditingServices()"
@@ -1701,7 +1702,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
             </svg>
-            Editar Servicios
+            Editar Mano de Obra
           </button>
         </div>
 
@@ -1900,6 +1901,7 @@
           <app-vehicle-diagnostic
             [initialDiagnostic]="editingDiagnosticData || undefined"
             [hideVehicleSelection]="true"
+            [currentUserName]="user?.full_name"
             (diagnosticCompleted)="saveDiagnosticEdit($event)"
             (cancelled)="cancelEditingDiagnostic()"
           ></app-vehicle-diagnostic>

@@ -146,7 +146,8 @@ import { CustomerService } from '../services/customer.service';
               <input
                 type="text"
                 [(ngModel)]="diagnostic.technicianName"
-                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                [readonly]="!!currentUserName"
+                [class]="currentUserName ? 'w-full border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-700 text-sm cursor-not-allowed' : 'w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm'"
                 placeholder="Nombre del técnico"
               />
             </div>
@@ -165,7 +166,8 @@ import { CustomerService } from '../services/customer.service';
             <input
               type="text"
               [(ngModel)]="diagnostic.technicianName"
-              class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+              [readonly]="!!currentUserName"
+              [class]="currentUserName ? 'w-full border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-700 text-sm cursor-not-allowed' : 'w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm'"
               placeholder="Nombre del técnico"
             />
           </div>
@@ -379,6 +381,7 @@ export class VehicleDiagnosticComponent implements OnInit {
   @Input() initialDiagnostic?: VehicleDiagnostic;
   @Input() customerId: string = '';
   @Input() hideVehicleSelection: boolean = false;
+  @Input() currentUserName?: string;
   @Output() diagnosticChange = new EventEmitter<VehicleDiagnostic>();
   @Output() diagnosticCompleted = new EventEmitter<VehicleDiagnostic>();
   @Output() vehicleSelected = new EventEmitter<any>();
@@ -412,6 +415,11 @@ export class VehicleDiagnosticComponent implements OnInit {
     if (this.initialDiagnostic) {
       this.diagnostic = JSON.parse(JSON.stringify(this.initialDiagnostic));
       this.isExpanded = true;
+    }
+
+    // Establecer nombre del técnico automáticamente si está disponible
+    if (this.currentUserName && !this.diagnostic.technicianName) {
+      this.diagnostic.technicianName = this.currentUserName;
     }
 
     if (this.hideVehicleSelection) {
