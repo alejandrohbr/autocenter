@@ -330,7 +330,7 @@ export class PdfGeneratorService {
                 <th>DESCRIPCIÓN</th>
                 <th style="width: 50px; text-align: center;">CANT.</th>
                 <th style="width: 80px; text-align: right;">PRECIO UNIT.</th>
-                <th style="width: 80px; text-align: right;">IMPORTE</th>
+                <th style="width: 80px; text-align: right;">IMPORTE TOTAL</th>
               </tr>
             </thead>
             <tbody>
@@ -348,7 +348,7 @@ export class PdfGeneratorService {
                 <th>MANO DE OBRA</th>
                 <th style="width: 50px; text-align: center;">CANT.</th>
                 <th style="width: 80px; text-align: right;">PRECIO</th>
-                <th style="width: 80px; text-align: right;">IMPORTE</th>
+                <th style="width: 80px; text-align: right;">IMPORTE TOTAL</th>
               </tr>
             </thead>
             <tbody>
@@ -358,7 +358,7 @@ export class PdfGeneratorService {
         ` : ''}
 
         ${diagnosticoRows ? `
-          <div class="section-title">🔍 Diagnóstico del Vehículo</div>
+          <div class="section-title">🔍 Servicios Sugeridos</div>
           <table>
             <thead>
               <tr>
@@ -411,8 +411,7 @@ export class PdfGeneratorService {
         </div>
 
         <div class="notes-section">
-          <strong>NOTA:</strong> Los precios pueden variar según disponibilidad. Este presupuesto tiene validez de 15 días.
-          El diagnóstico muestra el estado actual del vehículo y los servicios recomendados.
+          <strong>NOTA:</strong> Los precios pueden variar según disponibilidad, sin previo aviso.
         </div>
       </body>
       </html>
