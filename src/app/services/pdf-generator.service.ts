@@ -28,7 +28,7 @@ export class PdfGeneratorService {
         this.logoBase64 = canvas.toDataURL('image/png');
       }
     };
-    img.src = '/assets/image copy.png';
+    img.src = '/assets/AUTOCENTER (1).jpg';
   }
 
   generateDiagnosticBudgetHTML(order: Order, customer: Customer): string {
@@ -322,7 +322,7 @@ export class PdfGeneratorService {
         </div>
 
         ${productosRows ? `
-          <div class="section-title">✓ Productos Solicitados</div>
+          <div class="section-title">✓ Refacciones Solicitadas</div>
           <table>
             <thead>
               <tr>
@@ -340,12 +340,12 @@ export class PdfGeneratorService {
         ` : ''}
 
         ${serviciosRows ? `
-          <div class="section-title">🔧 Servicios Autorizados</div>
+          <div class="section-title">🔧 Mano de Obra Autorizada</div>
           <table>
             <thead>
               <tr>
                 <th style="width: 30px; text-align: center;">#</th>
-                <th>SERVICIO</th>
+                <th>MANO DE OBRA</th>
                 <th style="width: 50px; text-align: center;">CANT.</th>
                 <th style="width: 80px; text-align: right;">PRECIO</th>
                 <th style="width: 80px; text-align: right;">IMPORTE</th>
@@ -376,13 +376,13 @@ export class PdfGeneratorService {
         <div class="totals-box">
           ${subtotalProductos > 0 ? `
             <div class="total-row">
-              <span>Subtotal Productos:</span>
+              <span>Subtotal Refacciones:</span>
               <span>$${subtotalProductos.toFixed(2)}</span>
             </div>
           ` : ''}
           ${subtotalServicios > 0 ? `
             <div class="total-row">
-              <span>Subtotal Servicios:</span>
+              <span>Subtotal Mano de Obra:</span>
               <span>$${subtotalServicios.toFixed(2)}</span>
             </div>
           ` : ''}
@@ -393,7 +393,7 @@ export class PdfGeneratorService {
             </div>
           ` : ''}
           <div class="total-final">
-            <span>TOTAL A PAGAR:</span>
+            <span>COSTO TOTAL:</span>
             <span>$${total.toFixed(2)}</span>
           </div>
         </div>
