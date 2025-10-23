@@ -26,19 +26,23 @@ import {
 } from '../models/service.model';
 import { DIAGNOSTIC_CATEGORIES } from '../models/diagnostic.model';
 import { AuthService, User } from '../services/auth.service';
+import { OrderPermissionsService } from '../services/order-permissions.service';
+import { PreOcValidationComponent } from './pre-oc-validation.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, VehicleDiagnosticComponent, DiagnosticDisplayComponent, CustomerSearchComponent, AuthorizationRequestComponent, InvoiceUploadComponent, XmlUploadComponent, ProductClassificationComponent, LostSalesReportComponent, BudgetPreviewComponent],
+  imports: [CommonModule, FormsModule, VehicleDiagnosticComponent, DiagnosticDisplayComponent, CustomerSearchComponent, AuthorizationRequestComponent, InvoiceUploadComponent, XmlUploadComponent, ProductClassificationComponent, LostSalesReportComponent, BudgetPreviewComponent, PreOcValidationComponent],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
   user: User | null = null;
 
-  activeView: 'dashboard' | 'new-order' | 'customer-search' | 'authorization' | 'invoice-upload' | 'lost-sales-report' | 'admin-validation' = 'dashboard';
+  activeView: 'dashboard' | 'new-order' | 'customer-search' | 'authorization' | 'invoice-upload' | 'lost-sales-report' | 'admin-validation' | 'pre-oc-validation' = 'dashboard';
   pendingValidationOrders: Order[] = [];
   pendingValidationCount: number = 0;
+  pendingPreOCOrders: Order[] = [];
+  pendingPreOCCount: number = 0;
   showOrderDetail = false;
   showServicesSection = false;
   showAuthorizationModal = false;
@@ -47,6 +51,7 @@ export class DashboardComponent implements OnInit {
   showProductClassificationModal = false;
   showBudgetPreview = false;
   showDiagnosticModal = false;
+  showPreOCValidationModal = false;
   selectedOrder: Order | null = null;
   selectedOrderCustomer: Customer | null = null;
   selectedOrderVehicle: Vehicle | null = null;
@@ -187,7 +192,8 @@ export class DashboardComponent implements OnInit {
     private authService: AuthService,
     private xmlProductsService: XmlProductsService,
     private router: Router,
-    private supabaseService: SupabaseService
+    private supabaseService: SupabaseService,
+    public permissionsService: OrderPermissionsService
   ) {
     this.user = this.authService.getCurrentUser();
   }
@@ -1572,6 +1578,11 @@ export class DashboardComponent implements OnInit {
   async validateProducts(order: Order) {
     if (!order.id) return;
 
+    if (!this.canPerformAction(order, 'advance')) {
+      alert(this.getPermissionMessage(order, 'advance'));
+      return;
+    }
+
     try {
       order.isValidatingProducts = true;
       await this.xmlProductsService.updateOrderStatus(order.id, 'Validando Productos', {
@@ -1600,9 +1611,7 @@ export class DashboardComponent implements OnInit {
 
       alert('Productos validados correctamente. Ahora requieren aprobación del administrador.');
       await this.loadOrders();
-      if (this.auth.isSuperAdmin()) {
-        await this.loadPendingValidationOrders();
-      }
+      await this.loadPendingValidationOrders();
     } catch (error) {
       console.error('Error validando productos:', error);
       alert('Error al validar productos');
@@ -1612,6 +1621,11 @@ export class DashboardComponent implements OnInit {
 
   async processProducts(order: Order) {
     if (!order.id) return;
+
+    if (!this.canPerformAction(order, 'advance')) {
+      alert(this.getPermissionMessage(order, 'advance'));
+      return;
+    }
 
     if (order.admin_validation_status !== 'approved') {
       alert('Este pedido requiere aprobación del administrador antes de procesar los productos.');
@@ -1636,19 +1650,27 @@ export class DashboardComponent implements OnInit {
         }
       }
 
-      await this.xmlProductsService.updateOrderStatus(order.id, 'Pendiente de Orden de Compra', {
-        is_processing_products: false
-      });
+      await this.supabaseService.client
+        .from('orders')
+        .update({
+          status: 'Productos Procesados',
+          pre_oc_validation_status: 'pending',
+          is_processing_products: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', order.id);
 
-      order.status = 'Pendiente de Orden de Compra';
+      order.status = 'Productos Procesados';
+      order.pre_oc_validation_status = 'pending';
       order.isProcessingProducts = false;
 
       if (this.selectedOrder?.id === order.id) {
         this.selectedOrder = {...order};
       }
 
-      alert(`${products.length} productos procesados. SKUs generados exitosamente.`);
+      alert(`${products.length} productos procesados. SKUs generados exitosamente. Ahora requiere validación pre-OC.`);
       await this.loadOrders();
+      await this.loadPendingPreOCOrders();
     } catch (error) {
       console.error('Error procesando productos:', error);
       alert('Error al procesar productos');
@@ -1659,8 +1681,13 @@ export class DashboardComponent implements OnInit {
   async generatePurchaseOrder(order: Order) {
     if (!order.id) return;
 
-    if (!this.auth.canManageUsers()) {
-      alert('Solo los administradores pueden generar órdenes de compra.');
+    if (!this.canPerformAction(order, 'advance')) {
+      alert(this.getPermissionMessage(order, 'advance'));
+      return;
+    }
+
+    if (order.pre_oc_validation_status !== 'approved') {
+      alert('Este pedido requiere validación pre-OC antes de generar la orden de compra.');
       return;
     }
 
@@ -1676,12 +1703,12 @@ export class DashboardComponent implements OnInit {
       const sequential = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
       const purchaseOrderFolio = `OC-${year}-${sequential}`;
 
-      await this.xmlProductsService.updateOrderStatus(order.id, 'Completado', {
+      await this.xmlProductsService.updateOrderStatus(order.id, 'OC Generada', {
         is_generating_purchase_order: false,
         purchase_order_folio: purchaseOrderFolio
       });
 
-      order.status = 'Completado';
+      order.status = 'OC Generada';
       order.isGeneratingPurchaseOrder = false;
       order.purchaseOrderFolio = purchaseOrderFolio;
 
@@ -1826,5 +1853,131 @@ export class DashboardComponent implements OnInit {
       console.error('Error rechazando pedido:', error);
       alert('Error al rechazar el pedido: ' + error.message);
     }
+  }
+
+  async loadPendingPreOCOrders() {
+    try {
+      const { data, error } = await this.supabaseService.client
+        .from('orders')
+        .select(`
+          *,
+          customer:customers(*),
+          vehicle:vehicles(*)
+        `)
+        .eq('status', 'Productos Procesados')
+        .eq('pre_oc_validation_status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      this.pendingPreOCOrders = (data || []).map((order: any) => ({
+        ...order,
+        fecha: new Date(order.fecha),
+        productos: order.productos || [],
+        servicios: order.servicios || [],
+        presupuesto: order.presupuesto || 0,
+        customer: order.customer || {},
+        vehicle: order.vehicle || {}
+      }));
+
+      this.pendingPreOCCount = this.pendingPreOCOrders.length;
+    } catch (error: any) {
+      console.error('Error cargando pedidos pendientes de validación pre-OC:', error);
+    }
+  }
+
+  openPreOCValidation(order: Order) {
+    this.selectedOrder = order;
+    this.showPreOCValidationModal = true;
+  }
+
+  closePreOCValidation() {
+    this.showPreOCValidationModal = false;
+    this.selectedOrder = null;
+  }
+
+  async approvePreOCValidation(event: { notes: string }) {
+    if (!this.selectedOrder?.id) return;
+
+    try {
+      const { error } = await this.supabaseService.client
+        .from('orders')
+        .update({
+          pre_oc_validation_status: 'approved',
+          pre_oc_validated_by: this.user?.id,
+          pre_oc_validated_at: new Date().toISOString(),
+          pre_oc_validation_notes: event.notes,
+          status: 'Pre-OC Validado',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', this.selectedOrder.id);
+
+      if (error) throw error;
+
+      await this.authService.logAction('approve_pre_oc', {
+        order_id: this.selectedOrder.id,
+        notes: event.notes
+      });
+
+      alert('Validación pre-OC aprobada. Ahora puede generar la orden de compra.');
+      this.closePreOCValidation();
+      await this.loadPendingPreOCOrders();
+      await this.loadOrders();
+    } catch (error: any) {
+      console.error('Error aprobando validación pre-OC:', error);
+      alert('Error al aprobar la validación: ' + error.message);
+    }
+  }
+
+  async rejectPreOCValidation(event: { notes: string }) {
+    if (!this.selectedOrder?.id) return;
+
+    try {
+      const { error } = await this.supabaseService.client
+        .from('orders')
+        .update({
+          pre_oc_validation_status: 'rejected',
+          pre_oc_validated_by: this.user?.id,
+          pre_oc_validated_at: new Date().toISOString(),
+          pre_oc_validation_notes: event.notes,
+          status: 'Pre-OC Rechazado',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', this.selectedOrder.id);
+
+      if (error) throw error;
+
+      await this.authService.logAction('reject_pre_oc', {
+        order_id: this.selectedOrder.id,
+        notes: event.notes
+      });
+
+      alert('Validación pre-OC rechazada. El pedido debe ser revisado.');
+      this.closePreOCValidation();
+      await this.loadPendingPreOCOrders();
+      await this.loadOrders();
+    } catch (error: any) {
+      console.error('Error rechazando validación pre-OC:', error);
+      alert('Error al rechazar la validación: ' + error.message);
+    }
+  }
+
+  canPerformAction(order: Order, action: 'view' | 'edit' | 'advance'): boolean {
+    const phase = this.permissionsService.getPhaseFromStatus(order.status);
+    return this.permissionsService.canPerformAction(phase, action);
+  }
+
+  canAdvancePhase(order: Order): boolean {
+    const phase = this.permissionsService.getPhaseFromStatus(order.status);
+    return this.permissionsService.canAdvanceToNextPhase(
+      phase,
+      order.status,
+      order.admin_validation_status
+    );
+  }
+
+  getPermissionMessage(order: Order, action: 'view' | 'edit' | 'advance'): string {
+    const phase = this.permissionsService.getPhaseFromStatus(order.status);
+    return this.permissionsService.getPermissionDeniedMessage(phase, action);
   }
 }

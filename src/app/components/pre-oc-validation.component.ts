@@ -1,0 +1,260 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Order, ProductosPorProveedor } from '../models/order.model';
+import { AuthService } from '../services/auth.service';
+import { OrderPermissionsService } from '../services/order-permissions.service';
+
+@Component({
+  selector: 'app-pre-oc-validation',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
+    <div class="bg-white rounded-lg shadow-lg p-6" *ngIf="order">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">Validación Pre-OC</h2>
+          <p class="text-sm text-gray-600 mt-1">
+            Doble chequeo antes de generar la Orden de Compra
+          </p>
+        </div>
+        <button
+          (click)="onClose.emit()"
+          class="text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Información de la Orden -->
+      <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm font-medium text-blue-900">Folio de Orden</p>
+            <p class="text-lg font-bold text-blue-700">{{ order.folio }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-blue-900">Cliente</p>
+            <p class="text-lg font-bold text-blue-700">{{ order.cliente }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-blue-900">Estado Actual</p>
+            <p class="text-lg font-bold text-blue-700">{{ order.status }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-blue-900">Total</p>
+            <p class="text-lg font-bold text-blue-700">
+              \${{ order.presupuesto?.toFixed(2) || '0.00' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de Productos por Proveedor -->
+      <div class="mb-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-3">
+          Productos a Ordenar
+        </h3>
+        <div class="space-y-4" *ngIf="order.productosPorProveedor && order.productosPorProveedor.length > 0">
+          <div
+            *ngFor="let proveedor of order.productosPorProveedor"
+            class="border border-gray-200 rounded-lg p-4"
+          >
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h4 class="font-bold text-gray-900">{{ proveedor.proveedor }}</h4>
+                <p class="text-sm text-gray-600" *ngIf="proveedor.rfc">
+                  RFC: {{ proveedor.rfc }}
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold text-blue-600">
+                  \${{ proveedor.montoTotal.toFixed(2) }}
+                </p>
+                <p class="text-xs text-gray-600">
+                  {{ proveedor.productos.length }} productos
+                </p>
+              </div>
+            </div>
+
+            <!-- Lista de Productos -->
+            <div class="bg-gray-50 rounded p-3 max-h-48 overflow-y-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-gray-200 sticky top-0">
+                  <tr>
+                    <th class="text-left p-2">SKU</th>
+                    <th class="text-left p-2">Descripción</th>
+                    <th class="text-center p-2">Cant.</th>
+                    <th class="text-right p-2">Precio</th>
+                    <th class="text-right p-2">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let producto of proveedor.productos" class="border-b border-gray-200">
+                    <td class="p-2 font-mono text-xs">{{ producto.sku || 'N/A' }}</td>
+                    <td class="p-2">{{ producto.descripcion }}</td>
+                    <td class="text-center p-2">{{ producto.cantidad }}</td>
+                    <td class="text-right p-2">\${{ producto.precio.toFixed(2) }}</td>
+                    <td class="text-right p-2 font-semibold">
+                      \${{ (producto.precio * producto.cantidad).toFixed(2) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div
+          *ngIf="!order.productosPorProveedor || order.productosPorProveedor.length === 0"
+          class="text-center py-8 text-gray-500"
+        >
+          <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+          </svg>
+          <p>No hay productos cargados</p>
+        </div>
+      </div>
+
+      <!-- Notas de Validación -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-gray-700 mb-2">
+          Notas de Validación (Opcional)
+        </label>
+        <textarea
+          [(ngModel)]="validationNotes"
+          rows="4"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Agregue cualquier observación sobre esta orden antes de generar la OC..."
+          [disabled]="processing"
+        ></textarea>
+      </div>
+
+      <!-- Estado de Validación Actual -->
+      <div
+        *ngIf="order.pre_oc_validation_status && order.pre_oc_validation_status !== 'pending'"
+        class="mb-6 p-4 rounded-lg"
+        [ngClass]="{
+          'bg-green-50 border-l-4 border-green-500': order.pre_oc_validation_status === 'approved',
+          'bg-red-50 border-l-4 border-red-500': order.pre_oc_validation_status === 'rejected'
+        }"
+      >
+        <div class="flex items-center gap-2 mb-2">
+          <svg
+            *ngIf="order.pre_oc_validation_status === 'approved'"
+            class="w-6 h-6 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <svg
+            *ngIf="order.pre_oc_validation_status === 'rejected'"
+            class="w-6 h-6 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          <p class="font-bold" [ngClass]="{
+            'text-green-900': order.pre_oc_validation_status === 'approved',
+            'text-red-900': order.pre_oc_validation_status === 'rejected'
+          }">
+            {{ order.pre_oc_validation_status === 'approved' ? 'Validación Aprobada' : 'Validación Rechazada' }}
+          </p>
+        </div>
+        <p class="text-sm text-gray-700" *ngIf="order.pre_oc_validation_notes">
+          {{ order.pre_oc_validation_notes }}
+        </p>
+        <p class="text-xs text-gray-600 mt-2" *ngIf="order.pre_oc_validated_at">
+          {{ order.pre_oc_validated_at | date:'medium' }}
+        </p>
+      </div>
+
+      <!-- Acciones -->
+      <div class="flex gap-4" *ngIf="canValidate()">
+        <button
+          (click)="approve()"
+          [disabled]="processing"
+          class="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span>{{ processing ? 'Aprobando...' : 'Aprobar y Continuar' }}</span>
+        </button>
+
+        <button
+          (click)="reject()"
+          [disabled]="processing"
+          class="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          <span>{{ processing ? 'Rechazando...' : 'Rechazar' }}</span>
+        </button>
+      </div>
+
+      <!-- Mensaje si no tiene permisos -->
+      <div
+        *ngIf="!canValidate()"
+        class="bg-yellow-50 border-l-4 border-yellow-500 p-4 text-yellow-900"
+      >
+        <p class="font-medium">No tienes permisos para validar esta orden</p>
+        <p class="text-sm mt-1">
+          Solo Gerentes, Admin Corporativo y Super Admin pueden aprobar la validación pre-OC
+        </p>
+      </div>
+    </div>
+  `
+})
+export class PreOcValidationComponent {
+  @Input() order!: Order;
+  @Output() onApprove = new EventEmitter<{ notes: string }>();
+  @Output() onReject = new EventEmitter<{ notes: string }>();
+  @Output() onClose = new EventEmitter<void>();
+
+  validationNotes: string = '';
+  processing: boolean = false;
+
+  constructor(
+    private authService: AuthService,
+    private permissionsService: OrderPermissionsService
+  ) {}
+
+  canValidate(): boolean {
+    const user = this.authService.getCurrentUser();
+    if (!user) return false;
+
+    const allowedRoles = ['super_admin', 'admin_corporativo', 'gerente'];
+    return allowedRoles.includes(user.role);
+  }
+
+  approve(): void {
+    if (!this.canValidate() || this.processing) return;
+
+    if (confirm('¿Está seguro de aprobar esta orden para generar la OC?')) {
+      this.processing = true;
+      this.onApprove.emit({ notes: this.validationNotes });
+    }
+  }
+
+  reject(): void {
+    if (!this.canValidate() || this.processing) return;
+
+    if (!this.validationNotes.trim()) {
+      alert('Por favor agregue una nota explicando el motivo del rechazo');
+      return;
+    }
+
+    if (confirm('¿Está seguro de rechazar esta orden?')) {
+      this.processing = true;
+      this.onReject.emit({ notes: this.validationNotes });
+    }
+  }
+}

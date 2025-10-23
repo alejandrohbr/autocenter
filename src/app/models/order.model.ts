@@ -154,4 +154,8 @@ export interface Order {
   admin_validation_notes?: string;
   admin_validated_by?: string;
   admin_validated_at?: Date;
+  pre_oc_validation_status?: 'pending' | 'approved' | 'rejected';
+  pre_oc_validated_by?: string;
+  pre_oc_validated_at?: Date;
+  pre_oc_validation_notes?: string;
 }
