@@ -463,8 +463,14 @@ export class DashboardComponent implements OnInit {
   }
 
   addProductToEdit() {
-    if (!this.newProductEdit.descripcion || (this.newProductEdit.costo || 0) <= 0 || !this.selectedPaymentTypeEdit) {
-      alert('Complete todos los campos y seleccione un tipo de pago');
+    const missingFields: string[] = [];
+
+    if (!this.newProductEdit.descripcion) missingFields.push('Descripción del producto');
+    if ((this.newProductEdit.costo || 0) <= 0) missingFields.push('Costo del producto');
+    if (!this.selectedPaymentTypeEdit) missingFields.push('Tipo de pago');
+
+    if (missingFields.length > 0) {
+      alert(`Faltan los siguientes campos:\n\n• ${missingFields.join('\n• ')}`);
       return;
     }
 
@@ -669,8 +675,15 @@ export class DashboardComponent implements OnInit {
   }
 
   addProduct() {
-    if (!this.newProduct.descripcion || this.newProduct.costo <= 0 || this.newProduct.cantidad <= 0 || !this.selectedPaymentType) {
-      alert('Por favor complete todos los campos y seleccione un tipo de pago');
+    const missingFields: string[] = [];
+
+    if (!this.newProduct.descripcion) missingFields.push('Descripción del producto');
+    if (this.newProduct.costo <= 0) missingFields.push('Costo del producto');
+    if (this.newProduct.cantidad <= 0) missingFields.push('Cantidad');
+    if (!this.selectedPaymentType) missingFields.push('Tipo de pago');
+
+    if (missingFields.length > 0) {
+      alert(`Faltan los siguientes campos:\n\n• ${missingFields.join('\n• ')}`);
       return;
     }
 
@@ -850,8 +863,17 @@ export class DashboardComponent implements OnInit {
   }
 
   async onCreateOrder() {
-    if (!this.selectedCustomer || !this.newOrder.tienda || !this.newOrder.division || this.newOrder.productos.length === 0) {
-      alert('Por favor complete todos los campos requeridos');
+    const missingFields: string[] = [];
+
+    if (!this.selectedCustomer) missingFields.push('Cliente');
+    if (!this.newOrder.tienda) missingFields.push('Tienda');
+    if (!this.newOrder.division) missingFields.push('División');
+    if (this.newOrder.productos.length === 0 && (!this.newOrder.servicios || this.newOrder.servicios.length === 0)) {
+      missingFields.push('Productos o Servicios');
+    }
+
+    if (missingFields.length > 0) {
+      alert(`Por favor complete los siguientes campos requeridos:\n\n• ${missingFields.join('\n• ')}`);
       return;
     }
 
@@ -875,7 +897,7 @@ export class DashboardComponent implements OnInit {
 
       const orderData = {
         folio: folio,
-        customer_id: this.selectedCustomer.id,
+        customer_id: this.selectedCustomer!.id,
         vehicle_id: vehicleId,
         tienda: this.newOrder.tienda,
         division: this.newOrder.division,
@@ -1004,15 +1026,22 @@ export class DashboardComponent implements OnInit {
   }
 
   async saveNewVehicle() {
-    if (!this.selectedCustomer?.id || !this.newVehicle.placas || !this.newVehicle.marca ||
-        !this.newVehicle.modelo || !this.newVehicle.anio) {
-      alert('Por favor complete los campos obligatorios (Placas, Marca, Modelo, Año)');
+    const missingFields: string[] = [];
+
+    if (!this.selectedCustomer?.id) missingFields.push('Cliente');
+    if (!this.newVehicle.placas) missingFields.push('Placas');
+    if (!this.newVehicle.marca) missingFields.push('Marca');
+    if (!this.newVehicle.modelo) missingFields.push('Modelo');
+    if (!this.newVehicle.anio) missingFields.push('Año');
+
+    if (missingFields.length > 0) {
+      alert(`Por favor complete los siguientes campos obligatorios:\n\n• ${missingFields.join('\n• ')}`);
       return;
     }
 
     try {
       const vehicleData = {
-        customer_id: this.selectedCustomer.id,
+        customer_id: this.selectedCustomer!.id!,
         placas: this.newVehicle.placas,
         marca: this.newVehicle.marca,
         modelo: this.newVehicle.modelo,
