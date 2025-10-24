@@ -106,6 +106,7 @@ export interface OrderInvoice {
 export interface ProductosPorProveedor {
   proveedor: string;
   rfc?: string;
+  invoice_folio?: string;
   productos: XmlProduct[];
   totalValidados: number;
   totalNuevos: number;

@@ -850,8 +850,23 @@ export class DashboardComponent implements OnInit {
   }
 
   async onCreateOrder() {
-    if (!this.selectedCustomer || !this.newOrder.tienda || !this.newOrder.division || this.newOrder.productos.length === 0) {
-      alert('Por favor complete todos los campos requeridos');
+    const missingFields: string[] = [];
+
+    if (!this.selectedCustomer) {
+      missingFields.push('Cliente');
+    }
+    if (!this.newOrder.tienda) {
+      missingFields.push('Tienda');
+    }
+    if (!this.newOrder.division) {
+      missingFields.push('División');
+    }
+    if (this.newOrder.productos.length === 0) {
+      missingFields.push('Al menos una refacción');
+    }
+
+    if (missingFields.length > 0) {
+      alert('Por favor complete los siguientes campos requeridos:\n\n• ' + missingFields.join('\n• '));
       return;
     }
 
@@ -875,7 +890,7 @@ export class DashboardComponent implements OnInit {
 
       const orderData = {
         folio: folio,
-        customer_id: this.selectedCustomer.id,
+        customer_id: this.selectedCustomer!.id,
         vehicle_id: vehicleId,
         tienda: this.newOrder.tienda,
         division: this.newOrder.division,
