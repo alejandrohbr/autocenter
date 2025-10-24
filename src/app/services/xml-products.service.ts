@@ -204,28 +204,57 @@ export class XmlProductsService {
     return Object.values(grouped);
   }
 
-  async simulateValidateProducts(orderId: string): Promise<{ validados: number; nuevos: number }> {
+  async simulateValidateProducts(orderId: string): Promise<{ validados: number; nuevos: number; noEncontrados: number }> {
     try {
       const products = await this.getOrderXmlProducts(orderId);
 
       if (products.length === 0) {
-        return { validados: 0, nuevos: 0 };
+        return { validados: 0, nuevos: 0, noEncontrados: 0 };
       }
 
-      const productosAValidar = products.length > 2 ? products.length - 2 : 0;
-      const nuevos = products.length > 2 ? 2 : products.length;
+      let validados = 0;
+      let noEncontrados = 0;
 
-      for (let i = 0; i < products.length; i++) {
-        const product = products[i];
-        if (product.id && i < productosAValidar) {
-          await this.validateExistingProduct(product.id, `SKU-${Math.random().toString(36).substr(2, 9).toUpperCase()}`);
+      for (const product of products) {
+        if (!product.id) continue;
+
+        const encontrado = await this.buscarProductoEnBaseDatos(product.descripcion);
+
+        if (encontrado) {
+          await this.validateExistingProduct(product.id, encontrado.sku);
+          validados++;
+        } else {
+          await this.autoClassifyNotFoundProduct(product.id);
+          noEncontrados++;
         }
       }
 
-      return { validados: productosAValidar, nuevos };
+      const nuevos = products.length - validados - noEncontrados;
+
+      return { validados, nuevos, noEncontrados };
     } catch (error: any) {
       console.error('Error en simulateValidateProducts:', error);
       throw error;
+    }
+  }
+
+  private async buscarProductoEnBaseDatos(descripcion: string): Promise<{ sku: string } | null> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from('products')
+        .select('sku, descripcion')
+        .ilike('descripcion', `%${descripcion}%`)
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) {
+        return null;
+      }
+
+      return { sku: data.sku };
+    } catch (error) {
+      console.error('Error buscando producto:', error);
+      return null;
     }
   }
 

@@ -1472,9 +1472,9 @@ export class DashboardComponent implements OnInit {
 
       this.uploadedInvoices = invoices;
 
-      console.log('Simulando validación de productos...');
-      const { validados, nuevos } = await this.xmlProductsService.simulateValidateProducts(this.selectedOrder.id);
-      console.log(`Validación completada: ${validados} validados, ${nuevos} nuevos`);
+      console.log('Validando productos contra base de datos...');
+      const { validados, nuevos, noEncontrados } = await this.xmlProductsService.simulateValidateProducts(this.selectedOrder.id);
+      console.log(`Validación completada: ${validados} validados, ${nuevos} nuevos, ${noEncontrados} no encontrados`);
 
       console.log('Obteniendo productos XML del pedido...');
       this.xmlProducts = await this.xmlProductsService.getOrderXmlProducts(this.selectedOrder.id);
@@ -1484,6 +1484,13 @@ export class DashboardComponent implements OnInit {
       console.log('Productos a clasificar:', this.productsToClassify.length);
 
       if (this.productsToClassify.length > 0) {
+        let mensaje = `✅ ${validados} productos validados exitosamente.`;
+        if (noEncontrados > 0) {
+          mensaje += `\n⚠️ ${noEncontrados} productos NO encontrados - auto-clasificados.`;
+        }
+        mensaje += `\n\n📋 ${this.productsToClassify.length} productos nuevos requieren clasificación manual.`;
+        alert(mensaje);
+
         this.currentProductIndex = 0;
         this.currentProductToClassify = this.productsToClassify[0];
         this.showXmlUploadModal = false;
@@ -1494,7 +1501,14 @@ export class DashboardComponent implements OnInit {
           is_processing_xml: false
         });
 
-        alert(`${validados} productos validados exitosamente. No hay productos nuevos para clasificar.`);
+        let mensaje = `✅ ${validados} productos validados exitosamente.`;
+        if (noEncontrados > 0) {
+          mensaje += `\n⚠️ ${noEncontrados} productos NO encontrados - auto-clasificados como División 0134, Línea 260, Clase 271.`;
+        }
+        if (nuevos === 0) {
+          mensaje += `\n✓ No hay productos nuevos para clasificar manualmente.`;
+        }
+        alert(mensaje);
         this.showXmlUploadModal = false;
         await this.loadOrders();
       }
