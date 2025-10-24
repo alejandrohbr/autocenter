@@ -239,4 +239,56 @@ export class XmlProductsService {
       final: `${prefix}-${sequential}-${year}`
     };
   }
+
+  /**
+   * Auto-clasifica productos no encontrados con valores por defecto
+   * División: 0134, Línea: 260, Clase: 271
+   */
+  async autoClassifyNotFoundProduct(productId: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('xml_products')
+      .update({
+        division: '0134',
+        linea: '260',
+        clase: '271',
+        subclase: 'NO CLASIFICADO',
+        margen: 0,
+        precio_venta: 0,
+        is_validated: true,
+        is_new: false,
+        is_auto_classified: true,
+        not_found: true
+      })
+      .eq('id', productId);
+
+    if (error) throw error;
+  }
+
+  /**
+   * Obtiene todos los productos no encontrados de una orden
+   */
+  async getNotFoundProducts(orderId: string): Promise<XmlProduct[]> {
+    const { data, error } = await this.supabase.client
+      .from('xml_products')
+      .select('*')
+      .eq('order_id', orderId)
+      .eq('not_found', true);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * Cuenta productos no encontrados en una orden
+   */
+  async countNotFoundProducts(orderId: string): Promise<number> {
+    const { count, error } = await this.supabase.client
+      .from('xml_products')
+      .select('*', { count: 'exact', head: true })
+      .eq('order_id', orderId)
+      .eq('not_found', true);
+
+    if (error) throw error;
+    return count || 0;
+  }
 }

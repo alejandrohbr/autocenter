@@ -2094,12 +2094,30 @@
           Solicitar Autorización
         </button>
         <button
-          *ngIf="selectedOrder?.status === 'Autorizado'"
+          *ngIf="selectedOrder?.status === 'Autorizado' && selectedOrder && canPerformAction(selectedOrder, 'advance')"
           (click)="selectedOrder && openXmlUpload(selectedOrder)"
           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           Cargar Facturas XML
         </button>
+
+        <!-- Mensaje para técnicos que no pueden cargar XML -->
+        <div
+          *ngIf="selectedOrder?.status === 'Autorizado' && selectedOrder && !canPerformAction(selectedOrder, 'advance')"
+          class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded"
+        >
+          <div class="flex items-center">
+            <svg class="w-5 h-5 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-sm text-yellow-700 font-medium">
+              ⏳ A la espera de carga de factura XML
+            </p>
+          </div>
+          <p class="text-xs text-yellow-600 mt-1 ml-7">
+            Solo Asesores Técnicos, Gerentes y Administradores pueden cargar archivos XML
+          </p>
+        </div>
         <button
           *ngIf="selectedOrder?.status === 'Pendiente de Validación de Productos'"
           (click)="selectedOrder && validateProducts(selectedOrder)"
@@ -2191,6 +2209,7 @@
       [currentIndex]="currentProductIndex"
       [totalProducts]="productsToClassify.length"
       (productClassified)="onProductClassified($event)"
+      (productNotFound)="onProductNotFound($event)"
       (cancelled)="cancelProductClassification()"
     ></app-product-classification>
   </div>

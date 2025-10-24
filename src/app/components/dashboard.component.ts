@@ -1534,6 +1534,25 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  async onProductNotFound(product: XmlProduct) {
+    try {
+      if (product.id) {
+        await this.xmlProductsService.autoClassifyNotFoundProduct(product.id);
+      }
+
+      this.currentProductIndex++;
+
+      if (this.currentProductIndex < this.productsToClassify.length) {
+        this.currentProductToClassify = this.productsToClassify[this.currentProductIndex];
+      } else {
+        await this.finishProductClassification();
+      }
+    } catch (error) {
+      console.error('Error auto-clasificando producto no encontrado:', error);
+      alert('Error al procesar el producto no encontrado');
+    }
+  }
+
   async finishProductClassification() {
     if (!this.selectedOrder?.id) return;
 

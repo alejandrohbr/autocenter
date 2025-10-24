@@ -79,6 +79,8 @@ export interface XmlProduct {
   isNew: boolean;
   isProcessed?: boolean;
   proveedor: string;
+  is_auto_classified?: boolean;
+  not_found?: boolean;
 }
 
 export interface OrderInvoice {

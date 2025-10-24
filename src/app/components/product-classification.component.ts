@@ -123,22 +123,38 @@ interface ClassificationData {
           </div>
         </div>
 
-        <div class="sticky bottom-0 bg-white border-t p-6 flex gap-3">
+        <div class="sticky bottom-0 bg-white border-t p-6 space-y-3">
+          <!-- Botón de producto no encontrado -->
           <button
-            (click)="onCancel()"
-            class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+            (click)="onMarkAsNotFound()"
+            class="w-full px-6 py-3 bg-yellow-100 border-2 border-yellow-400 text-yellow-900 rounded-lg font-semibold hover:bg-yellow-200 transition-colors flex items-center justify-center gap-2"
           >
-            Cancelar Todo
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            ⚠️ Producto No Encontrado - Clasificar Automáticamente
           </button>
-          <button
-            (click)="onSaveAndContinue()"
-            [disabled]="!isValid()"
-            [class.opacity-50]="!isValid()"
-            [class.cursor-not-allowed]="!isValid()"
-            class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            {{ isLast ? 'Guardar y Finalizar' : 'Guardar y Continuar →' }}
-          </button>
+          <p class="text-xs text-gray-600 text-center">
+            Se clasificará automáticamente como: División 0134, Línea 260, Clase 271
+          </p>
+
+          <div class="flex gap-3">
+            <button
+              (click)="onCancel()"
+              class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+            >
+              Cancelar Todo
+            </button>
+            <button
+              (click)="onSaveAndContinue()"
+              [disabled]="!isValid()"
+              [class.opacity-50]="!isValid()"
+              [class.cursor-not-allowed]="!isValid()"
+              class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              {{ isLast ? 'Guardar y Finalizar' : 'Guardar y Continuar →' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -150,6 +166,7 @@ export class ProductClassificationComponent {
   @Input() currentIndex: number = 0;
   @Input() totalProducts: number = 0;
   @Output() productClassified = new EventEmitter<{ product: XmlProduct; classification: ClassificationData }>();
+  @Output() productNotFound = new EventEmitter<XmlProduct>();
   @Output() cancelled = new EventEmitter<void>();
 
   classificationData: ClassificationData = {
@@ -198,6 +215,14 @@ export class ProductClassificationComponent {
       margen: 0,
       precioVenta: 0
     };
+  }
+
+  onMarkAsNotFound() {
+    if (!this.product) return;
+
+    if (confirm('¿Confirmas que este producto no fue encontrado? Se clasificará automáticamente como División 0134, Línea 260, Clase 271.')) {
+      this.productNotFound.emit(this.product);
+    }
   }
 
   onCancel() {
