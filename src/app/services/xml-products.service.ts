@@ -175,23 +175,33 @@ export class XmlProductsService {
   }
 
   groupProductsByProvider(products: XmlProduct[], invoices?: OrderInvoice[]): ProductosPorProveedor[] {
-    if (!invoices || invoices.length === 0) {
-      return [];
-    }
+    const grouped = products.reduce((acc, product) => {
+      if (!acc[product.proveedor]) {
+        const invoice = invoices?.find(inv => inv.proveedor === product.proveedor);
+        acc[product.proveedor] = {
+          proveedor: product.proveedor,
+          rfc: invoice?.rfc_proveedor,
+          productos: [],
+          totalValidados: 0,
+          totalNuevos: 0,
+          montoTotal: 0
+        };
+      }
 
-    return invoices.map(invoice => {
-      const invoiceProducts = products.filter(p => p.invoice_id === invoice.id);
+      acc[product.proveedor].productos.push(product);
+      acc[product.proveedor].montoTotal += product.total;
 
-      return {
-        proveedor: invoice.proveedor,
-        rfc: invoice.rfc_proveedor,
-        invoice_folio: invoice.invoice_folio,
-        productos: invoiceProducts,
-        totalValidados: invoiceProducts.filter(p => p.isValidated).length,
-        totalNuevos: invoiceProducts.filter(p => p.isNew).length,
-        montoTotal: invoiceProducts.reduce((sum, p) => sum + p.total, 0)
-      };
-    });
+      if (product.isValidated) {
+        acc[product.proveedor].totalValidados++;
+      }
+      if (product.isNew) {
+        acc[product.proveedor].totalNuevos++;
+      }
+
+      return acc;
+    }, {} as { [key: string]: ProductosPorProveedor });
+
+    return Object.values(grouped);
   }
 
   async simulateValidateProducts(orderId: string): Promise<{ validados: number; nuevos: number; noEncontrados: number }> {

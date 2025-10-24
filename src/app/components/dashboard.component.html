@@ -1263,7 +1263,7 @@
                   </div>
                   <div>
                     <p class="text-xs text-gray-500 font-medium">Total</p>
-                    <p class="text-sm font-bold text-green-600">${{ order.presupuesto | number:'1.2-2' }}</p>
+                    <p class="text-sm font-bold text-green-600">\${{ order.presupuesto | number:'1.2-2' }}</p>
                   </div>
                   <div>
                     <p class="text-xs text-gray-500 font-medium">Productos Procesados</p>
@@ -1392,13 +1392,13 @@
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  ${{ product.precio | number:'1.2-2' }}
+                  \${{ product.precio | number:'1.2-2' }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {{ product.cantidad }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                  ${{ product.total | number:'1.2-2' }}
+                  \${{ product.total | number:'1.2-2' }}
                 </td>
               </tr>
             </tbody>
@@ -1411,7 +1411,7 @@
               Total de productos auto-clasificados: <span class="font-semibold">{{ notFoundProductsCount }}</span>
             </p>
             <p class="text-sm font-semibold text-gray-900">
-              Total: ${{ getNotFoundProductsTotal() | number:'1.2-2' }}
+              Total: \${{ getNotFoundProductsTotal() | number:'1.2-2' }}
             </p>
           </div>
         </div>
@@ -2235,9 +2235,6 @@
                 <div>
                   <h4 class="text-lg font-bold text-blue-900">{{ grupo.proveedor }}</h4>
                   <p class="text-sm text-blue-700 mt-1">
-                    <span *ngIf="grupo.invoice_folio" class="inline-flex items-center bg-blue-200 text-blue-900 px-3 py-1 rounded-full font-semibold mr-2">
-                      Factura: {{ grupo.invoice_folio }}
-                    </span>
                     <span *ngIf="grupo.rfc" class="font-medium">RFC: {{ grupo.rfc }}</span>
                     <span class="mx-2">•</span>
                     {{ grupo.productos.length }} productos
@@ -2330,7 +2327,7 @@
                 {{ grupo.productos.length }} productos en total
               </div>
               <div class="text-lg font-bold text-gray-900">
-                Total: ${{ grupo.montoTotal.toFixed(2) }}
+                Total: \${{ grupo.montoTotal.toFixed(2) }}
               </div>
             </div>
           </div>
@@ -2350,7 +2347,6 @@
     <!-- Footer Actions -->
     <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-between items-center">
       <button
-        *ngIf="selectedOrder && (selectedOrder.status === 'Diagnóstico' || selectedOrder.status === 'Pendiente de Autorización')"
         (click)="selectedOrder && generateBudgetPDF(selectedOrder)"
         class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
       >
