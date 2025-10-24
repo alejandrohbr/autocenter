@@ -81,6 +81,10 @@ export interface XmlProduct {
   proveedor: string;
   is_auto_classified?: boolean;
   not_found?: boolean;
+  invoice_folio?: string;
+  order_folio?: string;
+  cliente?: string;
+  vehiculo?: any;
 }
 
 export interface OrderInvoice {

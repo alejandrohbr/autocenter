@@ -38,11 +38,13 @@ import { PreOcValidationComponent } from './pre-oc-validation.component';
 export class DashboardComponent implements OnInit {
   user: User | null = null;
 
-  activeView: 'dashboard' | 'new-order' | 'customer-search' | 'authorization' | 'invoice-upload' | 'lost-sales-report' | 'admin-validation' | 'pre-oc-validation' = 'dashboard';
+  activeView: 'dashboard' | 'new-order' | 'customer-search' | 'authorization' | 'invoice-upload' | 'lost-sales-report' | 'admin-validation' | 'pre-oc-validation' | 'not-found-products' = 'dashboard';
   pendingValidationOrders: Order[] = [];
   pendingValidationCount: number = 0;
   pendingPreOCOrders: Order[] = [];
   pendingPreOCCount: number = 0;
+  notFoundProducts: XmlProduct[] = [];
+  notFoundProductsCount: number = 0;
   showOrderDetail = false;
   showServicesSection = false;
   showAuthorizationModal = false;
@@ -203,7 +205,13 @@ export class DashboardComponent implements OnInit {
     this.filterOrders();
     if (this.auth.isSuperAdmin()) {
       await this.loadPendingValidationOrders();
+      await this.loadPendingPreOCOrders();
+      await this.loadNotFoundProducts();
       await this.loadAdminStats();
+    } else if (this.auth.isAdminCorporativo() || this.auth.isGerente()) {
+      await this.loadPendingValidationOrders();
+      await this.loadPendingPreOCOrders();
+      await this.loadNotFoundProducts();
     }
   }
 
@@ -264,7 +272,7 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  setActiveView(view: 'dashboard' | 'new-order' | 'customer-search' | 'admin-validation') {
+  setActiveView(view: 'dashboard' | 'new-order' | 'customer-search' | 'admin-validation' | 'pre-oc-validation' | 'not-found-products') {
     this.activeView = view;
   }
 
@@ -1480,6 +1488,14 @@ export class DashboardComponent implements OnInit {
       this.xmlProducts = await this.xmlProductsService.getOrderXmlProducts(this.selectedOrder.id);
       console.log('Productos obtenidos:', this.xmlProducts.length);
 
+      console.log('Obteniendo facturas del pedido...');
+      this.uploadedInvoices = await this.xmlProductsService.getOrderInvoices(this.selectedOrder.id);
+      console.log('Facturas obtenidas:', this.uploadedInvoices.length);
+
+      console.log('Agrupando productos por proveedor...');
+      this.productosPorProveedor = this.xmlProductsService.groupProductsByProvider(this.xmlProducts, this.uploadedInvoices);
+      console.log('Proveedores agrupados:', this.productosPorProveedor.length);
+
       this.productsToClassify = this.xmlProducts.filter(p => p.isNew);
       console.log('Productos a clasificar:', this.productsToClassify.length);
 
@@ -2012,5 +2028,45 @@ export class DashboardComponent implements OnInit {
   getPermissionMessage(order: Order, action: 'view' | 'edit' | 'advance'): string {
     const phase = this.permissionsService.getPhaseFromStatus(order.status);
     return this.permissionsService.getPermissionDeniedMessage(phase, action);
+  }
+
+  async loadNotFoundProducts() {
+    try {
+      const { data, error } = await this.supabaseService.client
+        .from('xml_products')
+        .select(`
+          *,
+          invoice:invoices(
+            invoice_folio,
+            proveedor,
+            order:orders(
+              folio,
+              customer:customers(nombre_completo),
+              vehicle:vehicles(placas, marca, modelo)
+            )
+          )
+        `)
+        .eq('not_found', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      this.notFoundProducts = (data || []).map((product: any) => ({
+        ...product,
+        invoice_folio: product.invoice?.invoice_folio,
+        proveedor: product.invoice?.proveedor,
+        order_folio: product.invoice?.order?.folio,
+        cliente: product.invoice?.order?.customer?.nombre_completo,
+        vehiculo: product.invoice?.order?.vehicle
+      }));
+
+      this.notFoundProductsCount = this.notFoundProducts.length;
+    } catch (error: any) {
+      console.error('Error cargando productos no encontrados:', error);
+    }
+  }
+
+  getNotFoundProductsTotal(): number {
+    return this.notFoundProducts.reduce((sum, p) => sum + (p.total || 0), 0);
   }
 }

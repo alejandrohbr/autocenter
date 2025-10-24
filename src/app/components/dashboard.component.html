@@ -110,6 +110,32 @@
             {{ pendingValidationCount }}
           </span>
         </button>
+        <button
+          *ngIf="auth.isGerente() || auth.isAdminCorporativo() || auth.isSuperAdmin()"
+          (click)="setActiveView('pre-oc-validation')"
+          [class]="activeView === 'pre-oc-validation' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+          </svg>
+          Validación Pre-OC
+          <span *ngIf="pendingPreOCCount > 0" class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold text-white bg-indigo-600 rounded-full">
+            {{ pendingPreOCCount }}
+          </span>
+        </button>
+        <button
+          *ngIf="auth.isAdminCorporativo() || auth.isSuperAdmin()"
+          (click)="setActiveView('not-found-products')"
+          [class]="activeView === 'not-found-products' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          Productos No Encontrados
+          <span *ngIf="notFoundProductsCount > 0" class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold text-white bg-orange-600 rounded-full">
+            {{ notFoundProductsCount }}
+          </span>
+        </button>
       </nav>
     </div>
   </div>
@@ -1179,7 +1205,252 @@
         </div>
       </div>
     </div>
+
+    <!-- Pre-OC Validation Tab -->
+    <div *ngIf="activeView === 'pre-oc-validation' && (auth.isGerente() || auth.isAdminCorporativo() || auth.isSuperAdmin())">
+      <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-indigo-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-2xl font-bold text-indigo-900 flex items-center gap-2">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+                Validaciones Pre-OC Pendientes
+              </h3>
+              <p class="mt-1 text-sm text-indigo-700">{{ pendingPreOCOrders.length }} orden(es) esperando doble chequeo antes de generar OC</p>
+            </div>
+            <button
+              (click)="loadPendingPreOCOrders()"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+              Actualizar
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="pendingPreOCOrders.length === 0" class="p-12 text-center">
+          <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay órdenes pendientes de validación Pre-OC</h3>
+          <p class="text-gray-600">Todas las órdenes han sido validadas para generar OC</p>
+        </div>
+
+        <div *ngIf="pendingPreOCOrders.length > 0" class="divide-y divide-gray-200">
+          <div *ngFor="let order of pendingPreOCOrders" class="p-6 hover:bg-gray-50 transition-colors">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <span class="text-lg font-bold text-indigo-600">{{ order.folio.slice(-3) }}</span>
+                  </div>
+                  <div>
+                    <h4 class="text-lg font-bold text-gray-900">{{ order.folio }}</h4>
+                    <p class="text-sm text-gray-600">{{ order.cliente }} - {{ order.tienda }}</p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div>
+                    <p class="text-xs text-gray-500 font-medium">Vehículo</p>
+                    <p class="text-sm font-semibold text-gray-900">{{ order.vehiculo?.placas || 'N/A' }}</p>
+                    <p class="text-xs text-gray-600">{{ order.vehiculo?.marca }} {{ order.vehiculo?.modelo }}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 font-medium">Fecha</p>
+                    <p class="text-sm font-semibold text-gray-900">{{ order.fecha | date:'dd/MM/yyyy' }}</p>
+                    <p class="text-xs text-gray-600">{{ order.fecha | date:'HH:mm' }}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 font-medium">Total</p>
+                    <p class="text-sm font-bold text-green-600">\${{ order.presupuesto | number:'1.2-2' }}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 font-medium">Productos Procesados</p>
+                    <p class="text-sm font-bold text-blue-600">{{ order.processedProducts?.length || 0 }} productos</p>
+                  </div>
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-4">
+                  <p class="text-sm font-medium text-indigo-900">
+                    ⚠️ Doble chequeo requerido antes de generar la Orden de Compra
+                  </p>
+                  <p class="text-xs text-indigo-700 mt-1">
+                    Revisa todos los productos y proveedores antes de aprobar
+                  </p>
+                </div>
+              </div>
+
+              <div class="ml-6 flex flex-col gap-2">
+                <button
+                  (click)="openPreOCValidation(order)"
+                  class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                  </svg>
+                  Validar Pre-OC
+                </button>
+                <button
+                  (click)="viewOrderDetail(order)"
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                  Ver Detalle
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Not Found Products Tab -->
+    <div *ngIf="activeView === 'not-found-products' && (auth.isAdminCorporativo() || auth.isSuperAdmin())">
+      <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-orange-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-2xl font-bold text-orange-900 flex items-center gap-2">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                Productos No Encontrados - Auto-Clasificados
+              </h3>
+              <p class="mt-1 text-sm text-orange-700">{{ notFoundProductsCount }} producto(s) clasificado(s) automáticamente como División 0134, Línea 260, Clase 271</p>
+            </div>
+            <button
+              (click)="loadNotFoundProducts()"
+              class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+              Actualizar
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="notFoundProducts.length === 0" class="p-12 text-center">
+          <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay productos auto-clasificados</h3>
+          <p class="text-gray-600">Todos los productos han sido encontrados en la base de datos</p>
+        </div>
+
+        <div *ngIf="notFoundProducts.length > 0" class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Factura / Pedido
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Producto
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Proveedor
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Clasificación
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Precio
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Cantidad
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Total
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let product of notFoundProducts" class="hover:bg-orange-50 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-gray-900">{{ product.invoice_folio || 'N/A' }}</span>
+                    <span class="text-xs text-gray-500">Pedido: {{ product.order_folio || 'N/A' }}</span>
+                    <span class="text-xs text-gray-500">{{ product.cliente || 'N/A' }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-gray-900">{{ product.descripcion }}</span>
+                    <span *ngIf="product.sku" class="text-xs text-gray-500">SKU: {{ product.sku }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="text-sm text-gray-900">{{ product.proveedor || 'N/A' }}</span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 mb-1">
+                      Auto-Clasificado
+                    </span>
+                    <span class="text-xs text-gray-600">División: {{ product.division || '0134' }}</span>
+                    <span class="text-xs text-gray-600">Línea: {{ product.linea || '260' }}</span>
+                    <span class="text-xs text-gray-600">Clase: {{ product.clase || '271' }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  \${{ product.precio | number:'1.2-2' }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {{ product.cantidad }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                  \${{ product.total | number:'1.2-2' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="notFoundProducts.length > 0" class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <div class="flex items-center justify-between">
+            <p class="text-sm text-gray-600">
+              Total de productos auto-clasificados: <span class="font-semibold">{{ notFoundProductsCount }}</span>
+            </p>
+            <p class="text-sm font-semibold text-gray-900">
+              Total: \${{ getNotFoundProductsTotal() | number:'1.2-2' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Box -->
+      <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="ml-3 flex-1">
+            <h3 class="text-sm font-medium text-blue-800">Información sobre productos no encontrados</h3>
+            <div class="mt-2 text-sm text-blue-700">
+              <p>Estos productos no fueron encontrados en la base de datos durante el proceso de validación XML y fueron automáticamente clasificados con los siguientes valores:</p>
+              <ul class="list-disc list-inside mt-2 space-y-1">
+                <li><strong>División:</strong> 0134</li>
+                <li><strong>Línea:</strong> 260</li>
+                <li><strong>Clase:</strong> 271</li>
+              </ul>
+              <p class="mt-2">Esta clasificación automática permite continuar con el flujo de trabajo mientras se revisan estos productos para su correcta categorización en el futuro.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
+
+<!-- Modal Pre-OC Validation -->
+<div *ngIf="showPreOCValidationModal && selectedOrder" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+  <app-pre-oc-validation
+    [order]="selectedOrder"
+    (onApprove)="approvePreOCValidation($event)"
+    (onReject)="rejectPreOCValidation($event)"
+    (onClose)="closePreOCValidation()">
+  </app-pre-oc-validation>
 </div>
 
 <!-- Modal de Diagnóstico -->
