@@ -75,7 +75,7 @@ export class PdfGeneratorService {
           const severityColor = servicio.diagnosticSeverity === 'urgent' ? '#dc2626' :
                                servicio.diagnosticSeverity === 'recommended' ? '#f59e0b' :
                                '#10b981';
-          badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} DIAGNÓSTICO</span><br>`;
+          badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} RECOMENDADO</span><br>`;
         } else {
           // Badge para servicios pre-autorizados (manuales)
           badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 PRE-AUTORIZADA</span><br>`;
@@ -96,10 +96,50 @@ export class PdfGeneratorService {
       });
     }
 
+    // Separar autorizaciones autorizadas de las pendientes/rechazadas
+    let authorizedAuthsRows = '';
+    let pendingAuthsRows = '';
+    if (order.diagnostic_authorizations && order.diagnostic_authorizations.length > 0) {
+      let authorizedIdx = 1;
+      let pendingIdx = 1;
+
+      order.diagnostic_authorizations.forEach((auth) => {
+        const severityEmoji = auth.severity === 'urgent' ? '🔴' :
+                             auth.severity === 'recommended' ? '🟡' :
+                             '🟢';
+        const severityLabel = auth.severity === 'urgent' ? 'URGENTE' :
+                             auth.severity === 'recommended' ? 'RECOMENDADO' :
+                             'BIEN';
+        const severityColor = auth.severity === 'urgent' ? '#dc2626' :
+                             auth.severity === 'recommended' ? '#f59e0b' :
+                             '#10b981';
+
+        const row = `
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${auth.is_authorized ? authorizedIdx : pendingIdx}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">
+              <span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} ${severityLabel}</span><br>
+              <strong>${auth.item_name}</strong> (${auth.category})<br>
+              <span style="font-size: 9px;">${auth.description}</span>
+            </td>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(auth.estimated_cost || 0).toFixed(2)}</td>
+          </tr>
+        `;
+
+        if (auth.is_authorized) {
+          authorizedAuthsRows += row;
+          authorizedIdx++;
+        } else if (auth.is_authorized === null || auth.is_authorized === false) {
+          pendingAuthsRows += row;
+          pendingIdx++;
+        }
+      });
+    }
+
+    // Si no hay diagnostic_authorizations, usar los items del diagnostic (retrocompatibilidad)
     let diagnosticoRows = '';
-    if (diagnostic?.items && diagnostic.items.length > 0) {
+    if (!order.diagnostic_authorizations && diagnostic?.items && diagnostic.items.length > 0) {
       diagnostic.items.forEach((item, idx) => {
-        // Badge con semáforo para hallazgos y recomendaciones
         const severityEmoji = item.severity === 'urgent' ? '🔴' :
                              item.severity === 'recommended' ? '🟡' :
                              '🟢';
@@ -126,8 +166,21 @@ export class PdfGeneratorService {
 
     const subtotalProductos = order.productos?.reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
     const subtotalServicios = order.servicios?.reduce((sum, s) => sum + s.precio, 0) || 0;
+
+    // Calcular subtotal de autorizaciones autorizadas
+    const subtotalAuthorizedAuths = order.diagnostic_authorizations
+      ?.filter(auth => auth.is_authorized)
+      .reduce((sum, auth) => sum + (auth.estimated_cost || 0), 0) || 0;
+
+    // Calcular subtotal de servicios sugeridos (pendientes/rechazados)
+    const subtotalPendingAuths = order.diagnostic_authorizations
+      ?.filter(auth => auth.is_authorized === null || auth.is_authorized === false)
+      .reduce((sum, auth) => sum + (auth.estimated_cost || 0), 0) || 0;
+
+    // Para retrocompatibilidad con diagnostic.items
     const subtotalDiagnostico = diagnostic?.items?.reduce((sum, item) => sum + (item.estimatedCost || 0), 0) || 0;
-    const total = subtotalProductos + subtotalServicios + subtotalDiagnostico;
+
+    const total = subtotalProductos + subtotalServicios + subtotalAuthorizedAuths + subtotalDiagnostico;
 
     return `
       <!DOCTYPE html>
@@ -377,7 +430,7 @@ export class PdfGeneratorService {
         ` : ''}
 
         ${serviciosRows ? `
-          <div class="section-title">🔧 Mano de Obra Autorizada</div>
+          <div class="section-title">🔧 Mano de Obra Pre-Autorizada</div>
           <table>
             <thead>
               <tr>
@@ -394,7 +447,23 @@ export class PdfGeneratorService {
           </table>
         ` : ''}
 
-        ${diagnosticoRows ? `
+        ${authorizedAuthsRows ? `
+          <div class="section-title">🔧 Mano de Obra Autorizada</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30px; text-align: center;">#</th>
+                <th>MANO DE OBRA</th>
+                <th style="width: 100px; text-align: right;">COSTO</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${authorizedAuthsRows}
+            </tbody>
+          </table>
+        ` : ''}
+
+        ${(pendingAuthsRows || diagnosticoRows) ? `
           <div class="section-title">🔍 Servicios Sugeridos</div>
           <table>
             <thead>
@@ -405,7 +474,7 @@ export class PdfGeneratorService {
               </tr>
             </thead>
             <tbody>
-              ${diagnosticoRows}
+              ${pendingAuthsRows || diagnosticoRows}
             </tbody>
           </table>
         ` : ''}
@@ -419,14 +488,26 @@ export class PdfGeneratorService {
           ` : ''}
           ${subtotalServicios > 0 ? `
             <div class="total-row">
-              <span>Subtotal Mano de Obra:</span>
+              <span>Subtotal Mano de Obra Pre-Autorizada:</span>
               <span>$${subtotalServicios.toFixed(2)}</span>
+            </div>
+          ` : ''}
+          ${subtotalAuthorizedAuths > 0 ? `
+            <div class="total-row">
+              <span>Subtotal Mano de Obra Autorizada:</span>
+              <span>$${subtotalAuthorizedAuths.toFixed(2)}</span>
             </div>
           ` : ''}
           ${subtotalDiagnostico > 0 ? `
             <div class="total-row">
-              <span>Subtotal Diagnóstico:</span>
+              <span>Subtotal Recomendado:</span>
               <span>$${subtotalDiagnostico.toFixed(2)}</span>
+            </div>
+          ` : ''}
+          ${subtotalPendingAuths > 0 ? `
+            <div class="total-row" style="color: #666; font-style: italic;">
+              <span>Servicios Sugeridos (No incluidos en el total):</span>
+              <span>$${subtotalPendingAuths.toFixed(2)}</span>
             </div>
           ` : ''}
           <div class="total-final">
