@@ -243,14 +243,15 @@ export class PdfGeneratorService {
       </head>
       <body>
         <div class="header">
-          <div style="display: flex; align-items: center; justify-content: center; gap: 30px; padding: 10px;">
-            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 60px; width: auto; object-fit: contain;">` : ''}
-            ${this.logoAutoCenter ? `<img src="${this.logoAutoCenter}" alt="Auto Center" style="height: 60px; width: auto; object-fit: contain;">` : ''}
+          <div style="display: flex; align-items: center; justify-content: space-between; max-width: 800px; margin: 0 auto; padding: 15px 30px;">
+            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 55px; width: auto; object-fit: contain;">` : '<div style="width: 100px;"></div>'}
+            <div style="text-align: center; flex: 1; padding: 0 20px;">
+              ${this.logoAutoCenter ? `<img src="${this.logoAutoCenter}" alt="Auto Center" style="height: 50px; width: auto; margin-bottom: 8px; object-fit: contain;">` : ''}
+              ${order.tienda ? `<h1 style="font-size: 20px; color: #1e40af; margin: 8px 0 4px 0; font-weight: 700; letter-spacing: 0.5px;">${order.tienda}</h1>` : ''}
+              <p style="font-size: 11px; color: #6b7280; margin: 0; font-weight: 500;">Satélite Taller Mecánico</p>
+            </div>
+            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 55px; width: auto; object-fit: contain;">` : '<div style="width: 100px;"></div>'}
           </div>
-          ${order.tienda ? `<div style="text-align: center; margin-top: 10px;">
-            <h1 style="font-size: 24px; color: #1e40af; margin: 0;">${order.tienda}</h1>
-            <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">Satélite Taller Mecánico</p>
-          </div>` : ''}
         </div>
 
         <div class="folio-date">
