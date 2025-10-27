@@ -718,6 +718,7 @@ export class DashboardComponent implements OnInit {
       margen: margen,
       porcentajeMargen: porcentajeMargen,
       tipoMargen: margenPorcentaje,
+      porcentaje: margenPorcentaje,
       cantidad: this.newProduct.cantidad,
       precio: precioVentaPublico
     };
