@@ -36,10 +36,21 @@ export class PdfGeneratorService {
     let productosRows = '';
     if (order.productos && order.productos.length > 0) {
       order.productos.forEach((producto, idx) => {
+        let badge = '';
+        if (producto.fromDiagnostic && producto.diagnosticSeverity) {
+          const severityLabel = producto.diagnosticSeverity === 'urgent' ? '⚠️ URGENTE' :
+                               producto.diagnosticSeverity === 'recommended' ? '⚡ RECOMENDADO' :
+                               '✓ BIEN';
+          const severityColor = producto.diagnosticSeverity === 'urgent' ? '#dc2626' :
+                               producto.diagnosticSeverity === 'recommended' ? '#f59e0b' :
+                               '#10b981';
+          badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px;">${severityLabel}</span><br>`;
+        }
+
         productosRows += `
           <tr>
             <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${idx + 1}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${producto.descripcion}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${badge}${producto.descripcion}</td>
             <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${producto.cantidad}</td>
             <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${producto.precio.toFixed(2)}</td>
             <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(producto.precio * producto.cantidad).toFixed(2)}</td>
@@ -51,11 +62,22 @@ export class PdfGeneratorService {
     let serviciosRows = '';
     if (order.servicios && order.servicios.length > 0) {
       order.servicios.forEach((servicio, idx) => {
+        let badge = '';
+        if (servicio.fromDiagnostic && servicio.diagnosticSeverity) {
+          const severityLabel = servicio.diagnosticSeverity === 'urgent' ? '⚠️ URGENTE' :
+                               servicio.diagnosticSeverity === 'recommended' ? '⚡ RECOMENDADO' :
+                               '✓ BIEN';
+          const severityColor = servicio.diagnosticSeverity === 'urgent' ? '#dc2626' :
+                               servicio.diagnosticSeverity === 'recommended' ? '#f59e0b' :
+                               '#10b981';
+          badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px;">${severityLabel}</span><br>`;
+        }
+
         serviciosRows += `
           <tr>
             <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${idx + 1}</td>
             <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">
-              <strong>${servicio.nombre}</strong><br>
+              ${badge}<strong>${servicio.nombre}</strong><br>
               <span style="font-size: 9px;">${servicio.descripcion}</span>
             </td>
             <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">1</td>
