@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   DiagnosticItem,
+  DiagnosticPart,
   DiagnosticSeverity,
   VehicleDiagnostic,
   DIAGNOSTIC_CATEGORIES,
@@ -13,6 +14,12 @@ import {
   getSeverityIcon,
 } from '../models/diagnostic.model';
 import { CustomerService } from '../services/customer.service';
+import {
+  ServiceDefinition,
+  SERVICE_CATEGORIES,
+  getServicesByCategory,
+  PREDEFINED_SERVICES
+} from '../models/service.model';
 
 @Component({
   selector: 'app-vehicle-diagnostic',
@@ -156,45 +163,48 @@ import { CustomerService } from '../services/customer.service';
 
 
         <div class="bg-gray-50 rounded-lg p-4">
-          <h4 class="text-sm font-medium text-gray-900 mb-3">Agregar Item de Diagnóstico</h4>
+          <h4 class="text-sm font-medium text-gray-900 mb-3">Agregar Item de Diagnóstico (Mano de Obra)</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Categoría de Servicio</label>
               <select
                 [(ngModel)]="newItem.category"
-                (change)="onCategoryChange()"
+                (change)="onServiceCategoryChange()"
                 class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 <option value="">Seleccionar categoría</option>
-                <option *ngFor="let cat of categories" [value]="cat.id">
-                  {{ cat.icon }} {{ cat.name }}
+                <option *ngFor="let cat of serviceCategories" [value]="cat">
+                  {{ cat }}
                 </option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Item</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Servicio</label>
               <select
-                [(ngModel)]="newItem.item"
+                [(ngModel)]="selectedServiceSku"
+                (change)="onServiceSelected()"
                 [disabled]="!newItem.category"
                 class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm disabled:bg-gray-100"
               >
-                <option value="">Seleccionar item</option>
-                <option *ngFor="let item of availableItems" [value]="item">
-                  {{ item }}
+                <option value="">Seleccionar servicio</option>
+                <option *ngFor="let service of availableServices" [value]="service.sku">
+                  {{ service.nombre }} - {{ service.precioConIva }}
                 </option>
-                <option value="custom">Personalizado...</option>
               </select>
             </div>
           </div>
 
-          <div *ngIf="newItem.item === 'custom'" class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Item Personalizado</label>
-            <input
-              type="text"
-              [(ngModel)]="customItemName"
-              class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
-              placeholder="Nombre del item"
-            />
+          <div *ngIf="selectedServiceData" class="mb-4 p-3 bg-white rounded-lg border border-blue-200">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <h5 class="font-semibold text-blue-900">{{ selectedServiceData.nombre }}</h5>
+                <p class="text-xs text-gray-500 mt-1">SKU: {{ selectedServiceData.sku }}</p>
+                <p class="text-sm text-gray-700 mt-2">{{ selectedServiceData.descripcion }}</p>
+              </div>
+              <div class="text-right ml-4">
+                <p class="text-sm font-semibold text-green-600">{{ selectedServiceData.precioConIva }}</p>
+              </div>
+            </div>
           </div>
 
           <div class="mb-4">
@@ -378,6 +388,12 @@ export class VehicleDiagnosticComponent implements OnInit {
   selectedVehicleId: string = '';
   showNewVehicleForm = false;
 
+  // Catálogo de servicios
+  serviceCategories: string[] = SERVICE_CATEGORIES;
+  availableServices: ServiceDefinition[] = [];
+  selectedServiceSku: string = '';
+  selectedServiceData: ServiceDefinition | null = null;
+
   newItem = {
     category: '',
     item: '',
@@ -397,6 +413,11 @@ export class VehicleDiagnosticComponent implements OnInit {
     if (this.initialDiagnostic) {
       this.diagnostic = JSON.parse(JSON.stringify(this.initialDiagnostic));
       this.isExpanded = true;
+    }
+
+    // Inicializar array de parts si no existe
+    if (!this.diagnostic.parts) {
+      this.diagnostic.parts = [];
     }
 
     // Establecer nombre del técnico automáticamente si está disponible
@@ -459,6 +480,20 @@ export class VehicleDiagnosticComponent implements OnInit {
     this.availableItems = DIAGNOSTIC_ITEMS_BY_CATEGORY[this.newItem.category] || [];
   }
 
+  onServiceCategoryChange() {
+    this.selectedServiceSku = '';
+    this.selectedServiceData = null;
+    this.availableServices = getServicesByCategory(this.newItem.category);
+  }
+
+  onServiceSelected() {
+    this.selectedServiceData = PREDEFINED_SERVICES.find(s => s.sku === this.selectedServiceSku) || null;
+    if (this.selectedServiceData) {
+      this.newItem.item = this.selectedServiceData.nombre;
+      this.newItem.description = this.selectedServiceData.descripcion;
+    }
+  }
+
   canAddItem(): boolean {
     if (!this.newItem.category || !this.newItem.severity || !this.newItem.description) {
       return false;
@@ -480,7 +515,10 @@ export class VehicleDiagnosticComponent implements OnInit {
       item: itemName,
       description: this.newItem.description,
       severity: this.newItem.severity as DiagnosticSeverity,
-      estimatedCost: 0,
+      estimatedCost: this.selectedServiceData?.precioConIva || 0,
+      serviceSku: this.selectedServiceData?.sku,
+      serviceName: this.selectedServiceData?.nombre,
+      servicePrice: this.selectedServiceData?.precioConIva,
     };
 
     this.diagnostic.items.push(diagnosticItem);
@@ -493,6 +531,9 @@ export class VehicleDiagnosticComponent implements OnInit {
     };
     this.customItemName = '';
     this.availableItems = [];
+    this.selectedServiceSku = '';
+    this.selectedServiceData = null;
+    this.availableServices = [];
   }
 
   removeDiagnosticItem(index: number) {
@@ -524,6 +565,10 @@ export class VehicleDiagnosticComponent implements OnInit {
 
   getSeverityLabel(severity: DiagnosticSeverity): string {
     return getSeverityLabel(severity);
+  }
+
+  formatPrice(price: number): string {
+    return price.toFixed(2);
   }
 
   getSeverityButtonClass(severity: DiagnosticSeverity): string {

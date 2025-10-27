@@ -12,6 +12,23 @@ export interface DiagnosticItem {
   isRejected?: boolean;
   authorizationDate?: Date;
   rejectionReason?: string;
+  // Campos para servicios del catálogo
+  serviceSku?: string;
+  serviceName?: string;
+  servicePrice?: number;
+}
+
+export interface DiagnosticPart {
+  id: string;
+  sku: string;
+  descripcion: string;
+  cantidad: number;
+  costo: number;
+  precio: number;
+  margen: number;
+  porcentaje: number;
+  severity: DiagnosticSeverity;
+  relatedServiceId?: string; // ID del servicio relacionado
 }
 
 export interface VehicleDiagnostic {
@@ -24,6 +41,7 @@ export interface VehicleDiagnostic {
     color?: string;
   };
   items: DiagnosticItem[];
+  parts?: DiagnosticPart[];
   technicianName?: string;
   completedAt?: Date;
 }
