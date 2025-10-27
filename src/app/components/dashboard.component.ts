@@ -2266,4 +2266,40 @@ export class DashboardComponent implements OnInit {
         return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   }
+
+  async deleteOrder(order: Order) {
+    if (!this.canDeleteOrders()) {
+      alert('No tienes permisos para eliminar presupuestos');
+      return;
+    }
+
+    const confirmacion = confirm(
+      `¿Estás seguro de que deseas eliminar este presupuesto?\n\n` +
+      `Folio: ${order.folio}\n` +
+      `Cliente: ${order.cliente}\n` +
+      `Monto: $${order.presupuesto.toFixed(2)}\n\n` +
+      `Esta acción NO se puede deshacer.`
+    );
+
+    if (!confirmacion) return;
+
+    try {
+      const { error } = await this.customerService.client
+        .from('orders')
+        .delete()
+        .eq('id', order.id);
+
+      if (error) {
+        console.error('Error eliminando presupuesto:', error);
+        alert('Error al eliminar el presupuesto: ' + error.message);
+        return;
+      }
+
+      alert('Presupuesto eliminado exitosamente');
+      await this.loadOrders();
+    } catch (error: any) {
+      console.error('Error eliminando presupuesto:', error);
+      alert('Error al eliminar el presupuesto: ' + (error?.message || 'Error desconocido'));
+    }
+  }
 }
