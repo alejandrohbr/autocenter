@@ -4,68 +4,24 @@ import { Customer } from '../models/customer.model';
 import { DiagnosticItem } from '../models/diagnostic.model';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { LOGO_AUTOCENTER, LOGO_SEARS } from '../config/logos';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PdfGeneratorService {
-  private logoAutoCenter: string = '';
-  private logoSears: string = '';
-  private logosPromise: Promise<void> | null = null;
+  private readonly logoAutoCenter: string = LOGO_AUTOCENTER;
+  private readonly logoSears: string = LOGO_SEARS;
 
   constructor() {
-    this.logosPromise = this.loadLogos();
-  }
-
-  private async loadLogos(): Promise<void> {
-    try {
-      console.log('Iniciando carga de logos...');
-
-      // Cargar logo Auto Center
-      this.logoAutoCenter = await this.imageToBase64('/assets/AUTOCENTER.jpg');
-      console.log('Logo AutoCenter cargado, tamaño:', this.logoAutoCenter.length);
-
-      // Cargar logo Sears
-      this.logoSears = await this.imageToBase64('/assets/searsicono.png');
-      console.log('Logo Sears cargado, tamaño:', this.logoSears.length);
-
-      console.log('Todos los logos cargados exitosamente');
-    } catch (error) {
-      console.error('Error cargando logos:', error);
-    }
-  }
-
-  private async imageToBase64(url: string): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-      fetch(url)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.blob();
-        })
-        .then(blob => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const base64data = reader.result as string;
-            resolve(base64data);
-          };
-          reader.onerror = () => {
-            reject(new Error('Error leyendo el archivo'));
-          };
-          reader.readAsDataURL(blob);
-        })
-        .catch(error => {
-          console.error(`Error cargando ${url}:`, error);
-          reject(error);
-        });
-    });
+    console.log('PdfGeneratorService inicializado con logos embebidos');
+    console.log('Logo AutoCenter tamaño:', this.logoAutoCenter.length);
+    console.log('Logo Sears tamaño:', this.logoSears.length);
   }
 
   public async ensureLogosLoaded(): Promise<void> {
-    if (this.logosPromise) {
-      await this.logosPromise;
-    }
+    // Los logos ya están cargados como constantes
+    return Promise.resolve();
   }
 
   generateDiagnosticBudgetHTML(order: Order, customer: Customer): string {
