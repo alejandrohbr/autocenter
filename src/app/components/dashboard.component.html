@@ -922,7 +922,7 @@
                     [disabled]="!selectedServiceData"
                     class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
                   >
-                    Agregar Servicio
+                    Agregar Mano de Obra
                   </button>
                   <button
                     type="button"
@@ -939,7 +939,7 @@
                   <thead class="bg-gray-50">
                     <tr>
                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
-                      <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servicio</th>
+                      <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mano de Obra</th>
                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
                       <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
@@ -2002,7 +2002,7 @@
                 <thead class="bg-gradient-to-r from-green-600 to-green-700 text-white">
                   <tr>
                     <th class="text-left py-3 px-4 text-sm font-semibold">#</th>
-                    <th class="text-left py-3 px-4 text-sm font-semibold">Servicio</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold">Mano de Obra</th>
                     <th class="text-left py-3 px-4 text-sm font-semibold">Categoría</th>
                     <th class="text-left py-3 px-4 text-sm font-semibold">Descripción</th>
                     <th class="text-right py-3 px-4 text-sm font-semibold">Precio</th>
@@ -2011,7 +2011,17 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                   <tr *ngFor="let service of selectedOrder.servicios; let i = index" class="hover:bg-green-50 transition-colors">
                     <td class="py-3 px-4 text-sm text-gray-600">{{ i + 1 }}</td>
-                    <td class="py-3 px-4 text-sm font-medium text-gray-900">{{ service.nombre }}</td>
+                    <td class="py-3 px-4 text-sm font-medium text-gray-900">
+                      <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300">
+                          <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 6l2.5-2.5L9 7V3h2v4l3.5-3.5L17 6v12H3V6z"/>
+                          </svg>
+                          PRE-AUTORIZADA
+                        </span>
+                        <span>{{ service.nombre }}</span>
+                      </div>
+                    </td>
                     <td class="py-3 px-4 text-sm text-gray-600">{{ service.categoria }}</td>
                     <td class="py-3 px-4 text-sm text-gray-600">{{ service.descripcion }}</td>
                     <td class="py-3 px-4 text-right text-sm font-semibold text-green-600">${{ service.precio | number:'1.2-2' }}</td>
@@ -2022,13 +2032,13 @@
           </div>
 
           <div *ngIf="getAuthorizedServices(selectedOrder).length > 0" class="mb-6">
-            <h4 class="font-semibold text-gray-900 mb-3">Servicios del Diagnóstico</h4>
+            <h4 class="font-semibold text-gray-900 mb-3">Mano de Obra del Diagnóstico</h4>
             <div class="overflow-x-auto">
               <table class="w-full border border-gray-200 rounded-lg">
                 <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                   <tr>
                     <th class="text-left py-3 px-4 text-sm font-semibold">#</th>
-                    <th class="text-left py-3 px-4 text-sm font-semibold">Servicio</th>
+                    <th class="text-left py-3 px-4 text-sm font-semibold">Mano de Obra</th>
                     <th class="text-left py-3 px-4 text-sm font-semibold">Categoría</th>
                     <th class="text-left py-3 px-4 text-sm font-semibold">Descripción</th>
                     <th class="text-center py-3 px-4 text-sm font-semibold">Estado</th>
@@ -2073,7 +2083,7 @@
 
           <div class="bg-gray-50 rounded-lg p-4">
             <div class="flex justify-between items-center">
-              <span class="font-semibold text-gray-900">Total Servicios:</span>
+              <span class="font-semibold text-gray-900">Total Mano de Obra:</span>
               <span class="text-xl font-bold text-green-600">${{ getTotalServicesAmount(selectedOrder) | number:'1.2-2' }}</span>
             </div>
           </div>
@@ -2081,7 +2091,7 @@
 
         <div *ngIf="isEditingServices" class="space-y-4">
           <div class="bg-gray-50 p-4 rounded-lg mb-4">
-            <h4 class="text-sm font-medium text-gray-900 mb-3">Agregar Nuevo Servicio</h4>
+            <h4 class="text-sm font-medium text-gray-900 mb-3">Agregar Nueva Mano de Obra</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
@@ -2095,7 +2105,7 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Servicio</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Mano de Obra</label>
                 <select
                   [(ngModel)]="selectedServiceSKUEdit"
                   (change)="onServiceSelectedEdit()"
@@ -2115,7 +2125,7 @@
               [disabled]="!selectedServiceSKUEdit"
               class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              Agregar Servicio
+              Agregar Mano de Obra
             </button>
           </div>
 
@@ -2123,7 +2133,7 @@
             <thead class="bg-gray-100">
               <tr>
                 <th class="text-left py-2 px-3 text-sm font-semibold">#</th>
-                <th class="text-left py-2 px-3 text-sm font-semibold">Servicio</th>
+                <th class="text-left py-2 px-3 text-sm font-semibold">Mano de Obra</th>
                 <th class="text-left py-2 px-3 text-sm font-semibold">Categoría</th>
                 <th class="text-left py-2 px-3 text-sm font-semibold">Descripción</th>
                 <th class="text-right py-2 px-3 text-sm font-semibold">Precio</th>
