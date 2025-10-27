@@ -9,26 +9,41 @@ import html2canvas from 'html2canvas';
   providedIn: 'root'
 })
 export class PdfGeneratorService {
-  private logoBase64: string = '';
+  private logoAutoCenter: string = '';
+  private logoSears: string = '';
 
   constructor() {
-    this.loadLogo();
+    this.loadLogos();
   }
 
-  private loadLogo(): void {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.onload = () => {
+  private loadLogos(): void {
+    const imgAutoCenter = new Image();
+    imgAutoCenter.crossOrigin = 'Anonymous';
+    imgAutoCenter.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
+      canvas.width = imgAutoCenter.width;
+      canvas.height = imgAutoCenter.height;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.drawImage(img, 0, 0);
-        this.logoBase64 = canvas.toDataURL('image/png');
+        ctx.drawImage(imgAutoCenter, 0, 0);
+        this.logoAutoCenter = canvas.toDataURL('image/jpeg');
       }
     };
-    img.src = '/assets/AUTOCENTER (1).jpg';
+    imgAutoCenter.src = '/assets/AUTOCENTER.jpg';
+
+    const imgSears = new Image();
+    imgSears.crossOrigin = 'Anonymous';
+    imgSears.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = imgSears.width;
+      canvas.height = imgSears.height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(imgSears, 0, 0);
+        this.logoSears = canvas.toDataURL('image/png');
+      }
+    };
+    imgSears.src = '/assets/searsicono.png';
   }
 
   generateDiagnosticBudgetHTML(order: Order, customer: Customer): string {
@@ -246,12 +261,15 @@ export class PdfGeneratorService {
       </head>
       <body>
         <div class="header">
-          <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-            ${this.logoBase64 ? `<img src="${this.logoBase64}" alt="Auto Center" style="height: 60px; width: auto;">` : ''}
-            <div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 15px;">
+            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 50px; width: auto;">` : '<div style="width: 50px;"></div>'}
+            <div style="flex: 1; text-align: center;">
+              ${this.logoAutoCenter ? `<img src="${this.logoAutoCenter}" alt="Auto Center" style="height: 50px; width: auto; margin-bottom: 5px;">` : ''}
               <h1>AUTO CENTER</h1>
               <h2>Manejamos Confianza</h2>
+              ${order.tienda ? `<h2 style="margin-top: 5px; font-weight: bold;">${order.tienda}</h2>` : ''}
             </div>
+            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 50px; width: auto;">` : '<div style="width: 50px;"></div>'}
           </div>
         </div>
 
