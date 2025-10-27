@@ -2199,7 +2199,12 @@
         </div>
 
         <div *ngIf="selectedOrder.diagnostic && !isEditingDiagnostic">
-          <app-diagnostic-display [diagnostic]="selectedOrder.diagnostic"></app-diagnostic-display>
+          <app-diagnostic-display
+            [diagnostic]="selectedOrder.diagnostic"
+            [showActions]="true"
+            (itemAuthorized)="onAuthorizeDiagnosticItem($event)"
+            (itemRejected)="onRejectDiagnosticItem($event)"
+          ></app-diagnostic-display>
         </div>
 
         <div *ngIf="isEditingDiagnostic">

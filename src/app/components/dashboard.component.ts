@@ -915,37 +915,16 @@ export class DashboardComponent implements OnInit {
     if (!order.diagnostic) return;
 
     // Inicializar arrays si no existen
-    if (!order.servicios) {
-      order.servicios = [];
-    }
     if (!order.productos) {
       order.productos = [];
     }
 
-    // Eliminar servicios y productos previos del diagnóstico para evitar duplicados
-    order.servicios = order.servicios.filter(s => !s.fromDiagnostic);
+    // Eliminar refacciones previas del diagnóstico para evitar duplicados
     order.productos = order.productos.filter(p => !p.fromDiagnostic);
 
-    // Transferir items de diagnóstico (servicios) a mano de obra
-    if (order.diagnostic.items && order.diagnostic.items.length > 0) {
-      order.diagnostic.items.forEach(item => {
-        // Solo agregar si el item tiene información de servicio
-        if (item.serviceSku && item.serviceName) {
-          const service: Service = {
-            sku: item.serviceSku,
-            nombre: item.serviceName,
-            descripcion: item.description,
-            categoria: item.category,
-            precio: item.servicePrice || item.estimatedCost || 0,
-            fromDiagnostic: true,
-            diagnosticSeverity: item.severity
-          };
-          order.servicios!.push(service);
-        }
-      });
-    }
-
-    // Transferir refacciones del diagnóstico a productos
+    // SOLO transferir refacciones del diagnóstico a productos
+    // Los servicios NO se transfieren automáticamente, se quedan en "Hallazgos y Recomendaciones"
+    // hasta que el usuario los autorice manualmente
     if (order.diagnostic.parts && order.diagnostic.parts.length > 0) {
       order.diagnostic.parts.forEach(part => {
         const product: Product = {
@@ -965,7 +944,7 @@ export class DashboardComponent implements OnInit {
 
     // Recalcular presupuesto
     const totalProductos = order.productos.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
-    const totalServicios = order.servicios.reduce((sum, s) => sum + s.precio, 0);
+    const totalServicios = order.servicios?.reduce((sum, s) => sum + s.precio, 0) || 0;
     order.presupuesto = totalProductos + totalServicios;
   }
 
@@ -1558,6 +1537,80 @@ export class DashboardComponent implements OnInit {
     await this.updateOrderInDatabase(this.selectedOrder);
     this.isEditingDiagnostic = false;
     this.editingDiagnosticData = null;
+  }
+
+  async onAuthorizeDiagnosticItem(item: any) {
+    if (!this.selectedOrder || !this.selectedOrder.diagnostic) return;
+
+    // Agregar el servicio a mano de obra
+    if (!this.selectedOrder.servicios) {
+      this.selectedOrder.servicios = [];
+    }
+
+    const service: Service = {
+      sku: item.serviceSku || `DIAG-${Date.now()}`,
+      nombre: item.serviceName || item.item,
+      descripcion: item.description,
+      categoria: item.category,
+      precio: item.servicePrice || item.estimatedCost || 0,
+      fromDiagnostic: true,
+      diagnosticSeverity: item.severity
+    };
+
+    this.selectedOrder.servicios.push(service);
+
+    // Eliminar el item del diagnóstico
+    const itemIndex = this.selectedOrder.diagnostic.items.findIndex(i => i.id === item.id);
+    if (itemIndex !== -1) {
+      this.selectedOrder.diagnostic.items.splice(itemIndex, 1);
+    }
+
+    // Recalcular presupuesto
+    const totalProductos = this.selectedOrder.productos?.reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
+    const totalServicios = this.selectedOrder.servicios.reduce((sum, s) => sum + s.precio, 0);
+    this.selectedOrder.presupuesto = totalProductos + totalServicios;
+
+    // Guardar cambios
+    await this.updateOrderInDatabase(this.selectedOrder);
+  }
+
+  async onRejectDiagnosticItem(item: any) {
+    if (!this.selectedOrder || !this.selectedOrder.diagnostic) return;
+
+    // Eliminar el item del diagnóstico
+    const itemIndex = this.selectedOrder.diagnostic.items.findIndex(i => i.id === item.id);
+    if (itemIndex !== -1) {
+      this.selectedOrder.diagnostic.items.splice(itemIndex, 1);
+    }
+
+    // Eliminar las refacciones relacionadas con este servicio
+    if (this.selectedOrder.diagnostic.parts) {
+      this.selectedOrder.diagnostic.parts = this.selectedOrder.diagnostic.parts.filter(
+        part => part.relatedServiceId !== item.id
+      );
+    }
+
+    // Eliminar las refacciones de la orden (productos) que pertenezcan a este servicio
+    if (this.selectedOrder.productos) {
+      this.selectedOrder.productos = this.selectedOrder.productos.filter(producto => {
+        // Si el producto es del diagnóstico, verificar si es de este servicio
+        if (producto.fromDiagnostic && producto.diagnosticSeverity === item.severity) {
+          // Buscar en las partes del diagnóstico si alguna tenía este relatedServiceId
+          const wasRelated = !this.selectedOrder!.diagnostic!.parts ||
+            !this.selectedOrder!.diagnostic!.parts.some(p => p.relatedServiceId === item.id && p.descripcion === producto.descripcion);
+          return wasRelated;
+        }
+        return true; // Mantener productos que no son del diagnóstico
+      });
+    }
+
+    // Recalcular presupuesto
+    const totalProductos = this.selectedOrder.productos?.reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
+    const totalServicios = this.selectedOrder.servicios?.reduce((sum, s) => sum + s.precio, 0) || 0;
+    this.selectedOrder.presupuesto = totalProductos + totalServicios;
+
+    // Guardar cambios
+    await this.updateOrderInDatabase(this.selectedOrder);
   }
 
   async onDiagnosticUpdated(diagnostic: VehicleDiagnostic) {

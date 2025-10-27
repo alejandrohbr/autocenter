@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   VehicleDiagnostic,
@@ -116,6 +116,28 @@ import {
                   <p class="text-sm text-gray-700 ml-7">{{ item.description }}</p>
                   <p class="text-xs text-gray-500 ml-7 mt-1">{{ getCategoryName(item.category) }}</p>
                 </div>
+                <div *ngIf="showActions" class="flex gap-2 ml-4">
+                  <button
+                    (click)="onAuthorizeItem(item)"
+                    class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                    title="Autorizar servicio"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Autorizar
+                  </button>
+                  <button
+                    (click)="onRejectItem(item)"
+                    class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                    title="Rechazar servicio"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Rechazar
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -145,6 +167,28 @@ import {
                   </div>
                   <p class="text-sm text-gray-700 ml-7">{{ item.description }}</p>
                   <p class="text-xs text-gray-500 ml-7 mt-1">{{ getCategoryName(item.category) }}</p>
+                </div>
+                <div *ngIf="showActions" class="flex gap-2 ml-4">
+                  <button
+                    (click)="onAuthorizeItem(item)"
+                    class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                    title="Autorizar servicio"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Autorizar
+                  </button>
+                  <button
+                    (click)="onRejectItem(item)"
+                    class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                    title="Rechazar servicio"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Rechazar
+                  </button>
                 </div>
               </div>
             </div>
@@ -176,6 +220,28 @@ import {
                   <p class="text-sm text-gray-700 ml-7">{{ item.description }}</p>
                   <p class="text-xs text-gray-500 ml-7 mt-1">{{ getCategoryName(item.category) }}</p>
                 </div>
+                <div *ngIf="showActions" class="flex gap-2 ml-4">
+                  <button
+                    (click)="onAuthorizeItem(item)"
+                    class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                    title="Autorizar servicio"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Autorizar
+                  </button>
+                  <button
+                    (click)="onRejectItem(item)"
+                    class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                    title="Rechazar servicio"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Rechazar
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -190,8 +256,19 @@ import {
 })
 export class DiagnosticDisplayComponent {
   @Input() diagnostic: VehicleDiagnostic | undefined;
+  @Input() showActions: boolean = false; // Mostrar botones de autorizar/rechazar
+  @Output() itemAuthorized = new EventEmitter<DiagnosticItem>();
+  @Output() itemRejected = new EventEmitter<DiagnosticItem>();
 
   categories = DIAGNOSTIC_CATEGORIES;
+
+  onAuthorizeItem(item: DiagnosticItem) {
+    this.itemAuthorized.emit(item);
+  }
+
+  onRejectItem(item: DiagnosticItem) {
+    this.itemRejected.emit(item);
+  }
 
   getItemCountBySeverity(severity: DiagnosticSeverity): number {
     if (!this.diagnostic) return 0;
