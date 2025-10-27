@@ -1290,72 +1290,28 @@ export class DashboardComponent implements OnInit {
   }
 
   async requestAuthorization(order: Order) {
-    if (!order.diagnostic || !order.diagnostic.items || order.diagnostic.items.length === 0) {
-      const diagnosticItems: any[] = [];
+    // Verificar que haya al menos algo para autorizar
+    const hasProducts = order.productos && order.productos.length > 0;
+    const hasServices = order.servicios && order.servicios.length > 0;
+    const hasDiagnosticItems = order.diagnostic?.items && order.diagnostic.items.length > 0;
 
-      if (order.productos && order.productos.length > 0) {
-        order.productos.forEach(producto => {
-          diagnosticItems.push({
-            item: producto.descripcion || 'Producto',
-            description: `Producto: ${producto.descripcion}`,
-            estimatedCost: producto.precio * producto.cantidad,
-            priority: 'normal' as 'high' | 'normal' | 'low',
-            isAuthorized: false,
-            isRejected: false
-          });
-        });
-      }
+    if (!hasProducts && !hasServices && !hasDiagnosticItems) {
+      alert('Este pedido no tiene productos, servicios o diagnóstico para autorizar');
+      return;
+    }
 
-      if (order.servicios && order.servicios.length > 0) {
-        order.servicios.forEach(servicio => {
-          diagnosticItems.push({
-            item: servicio.descripcion || 'Servicio',
-            description: `Servicio: ${servicio.descripcion}`,
-            estimatedCost: servicio.precio,
-            priority: 'normal' as 'high' | 'normal' | 'low',
-            isAuthorized: false,
-            isRejected: false
-          });
-        });
-      }
-
-      if (diagnosticItems.length === 0) {
-        alert('Este pedido no tiene productos, servicios o diagnóstico para autorizar');
-        return;
-      }
-
-      if (!order.diagnostic) {
-        order.diagnostic = {
-          vehicleInfo: {
-            plate: order.vehiculo?.placas,
-            brand: order.vehiculo?.marca,
-            model: order.vehiculo?.modelo,
-            year: order.vehiculo?.anio,
-            color: order.vehiculo?.color
-          },
-          items: diagnosticItems.map((item, index) => ({
-            id: `auto-${index}`,
-            category: 'other',
-            item: item.item,
-            description: item.description,
-            severity: 'recommended' as DiagnosticSeverity,
-            estimatedCost: item.estimatedCost,
-            isAuthorized: item.isAuthorized,
-            isRejected: item.isRejected
-          }))
-        };
-      } else {
-        order.diagnostic.items = diagnosticItems.map((item, index) => ({
-          id: `auto-${index}`,
-          category: 'other',
-          item: item.item,
-          description: item.description,
-          severity: 'recommended' as DiagnosticSeverity,
-          estimatedCost: item.estimatedCost,
-          isAuthorized: item.isAuthorized,
-          isRejected: item.isRejected
-        }));
-      }
+    // Inicializar diagnostic si no existe (para mantener estructura)
+    if (!order.diagnostic) {
+      order.diagnostic = {
+        vehicleInfo: {
+          plate: order.vehiculo?.placas,
+          brand: order.vehiculo?.marca,
+          model: order.vehiculo?.modelo,
+          year: order.vehiculo?.anio,
+          color: order.vehiculo?.color
+        },
+        items: []
+      };
     }
 
     this.selectedOrder = order;
