@@ -34,7 +34,7 @@ interface ClassificationData {
 
         <div *ngIf="product" class="p-6 space-y-6">
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 class="font-semibold text-blue-900 mb-2">Información del Producto</h3>
+            <h3 class="font-semibold text-blue-900 mb-2">Información de la Refacción</h3>
             <p class="text-sm text-gray-700"><strong>Descripción:</strong> {{ product.descripcion }}</p>
             <p class="text-sm text-gray-700"><strong>Proveedor:</strong> {{ product.proveedor }}</p>
             <p class="text-sm text-gray-700"><strong>Costo:</strong> \${{ product.precio.toFixed(2) }}</p>

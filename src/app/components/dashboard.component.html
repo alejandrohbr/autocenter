@@ -764,7 +764,7 @@
                       [(ngModel)]="newProduct.descripcion"
                       name="productDescription"
                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
-                      placeholder="Descripción del producto"
+                      placeholder="Descripción de la refacción"
                     />
                   </div>
 
@@ -802,7 +802,7 @@
                     [disabled]="!selectedPaymentType"
                     class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
                   >
-                    {{ isEditingProduct ? 'Actualizar Producto' : 'Agregar Producto' }}
+                    {{ isEditingProduct ? 'Actualizar Producto' : 'Agregar Refacción' }}
                   </button>
                   <button
                     *ngIf="isEditingProduct"
@@ -1276,7 +1276,7 @@
                     ⚠️ Doble chequeo requerido antes de generar la Orden de Compra
                   </p>
                   <p class="text-xs text-indigo-700 mt-1">
-                    Revisa todos los productos y proveedores antes de aprobar
+                    Revisa todos las refacciones y proveedores antes de aprobar
                   </p>
                 </div>
               </div>
@@ -1333,7 +1333,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay productos auto-clasificados</h3>
-          <p class="text-gray-600">Todos los productos han sido encontrados en la base de datos</p>
+          <p class="text-gray-600">Todos las refacciones han sido encontrados en la base de datos</p>
         </div>
 
         <div *ngIf="notFoundProducts.length > 0" class="overflow-x-auto">
@@ -1828,18 +1828,18 @@
                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                Este margen se aplicará automáticamente a todos los productos
+                Este margen se aplicará automáticamente a todos las refacciones
               </p>
             </div>
           </div>
 
-          <!-- Agregar Producto -->
+          <!-- Agregar Refacción -->
           <div class="bg-gray-50 border border-gray-300 rounded-lg p-4">
             <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
               </svg>
-              Agregar Producto
+              Agregar Refacción
             </h4>
 
             <div class="grid grid-cols-8 gap-3 mb-3">
@@ -1848,7 +1848,7 @@
                 <input
                   type="text"
                   [(ngModel)]="newProductEdit.descripcion"
-                  placeholder="Descripción del producto"
+                  placeholder="Descripción de la refacción"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                 />
               </div>
@@ -1881,7 +1881,7 @@
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                   </svg>
-                  Agregar Producto
+                  Agregar Refacción
                 </button>
               </div>
             </div>
@@ -2374,7 +2374,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
           </svg>
           <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay refacciones XML</h3>
-          <p class="text-gray-600">Carga facturas XML para ver los productos aquí</p>
+          <p class="text-gray-600">Carga facturas XML para ver las refacciones aquí</p>
         </div>
       </div>
     </div>
