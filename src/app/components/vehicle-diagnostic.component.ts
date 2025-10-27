@@ -259,16 +259,7 @@ import {
             <p>Relacionadas con: <strong>{{ diagnostic.items.length > 0 ? diagnostic.items[diagnostic.items.length - 1].item : '' }}</strong></p>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">SKU / Código</label>
-              <input
-                type="text"
-                [(ngModel)]="newPart.sku"
-                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm"
-                placeholder="SKU de la refacción"
-              />
-            </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
               <input
@@ -278,9 +269,18 @@ import {
                 placeholder="Nombre de la refacción"
               />
             </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Costo sin IVA</label>
+              <input
+                type="number"
+                [(ngModel)]="newPart.costo"
+                step="0.01"
+                min="0"
+                (input)="calculatePartPricing()"
+                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm"
+                placeholder="0.00"
+              />
+            </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
               <input
@@ -290,34 +290,26 @@ import {
                 class="w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm"
               />
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Costo</label>
-              <input
-                type="number"
-                [(ngModel)]="newPart.costo"
-                step="0.01"
-                (input)="calculatePartMargin()"
-                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
-              <input
-                type="number"
-                [(ngModel)]="newPart.precio"
-                step="0.01"
-                (input)="calculatePartMargin()"
-                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Margen %</label>
-              <input
-                type="number"
-                [(ngModel)]="newPart.porcentaje"
-                readonly
-                class="w-full border-gray-300 rounded-md shadow-sm bg-gray-100 text-sm"
-              />
+          </div>
+
+          <div *ngIf="newPart.costo && newPart.costo > 0" class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="grid grid-cols-4 gap-3 text-sm">
+              <div>
+                <p class="text-gray-600">Costo con IVA:</p>
+                <p class="font-semibold text-gray-900">{{ (newPart.costo! * 1.16).toFixed(2) }}</p>
+              </div>
+              <div>
+                <p class="text-gray-600">Precio Venta:</p>
+                <p class="font-semibold text-green-600">{{ newPart.precio?.toFixed(2) || '0.00' }}</p>
+              </div>
+              <div>
+                <p class="text-gray-600">Margen:</p>
+                <p class="font-semibold text-blue-600">{{ newPart.margen?.toFixed(2) || '0.00' }}</p>
+              </div>
+              <div>
+                <p class="text-gray-600">% Margen:</p>
+                <p class="font-semibold text-purple-600">{{ newPart.porcentaje?.toFixed(0) || '0' }}%</p>
+              </div>
             </div>
           </div>
 
@@ -342,8 +334,7 @@ import {
                     </span>
                     <span class="font-medium text-gray-900">{{ part.descripcion }}</span>
                   </div>
-                  <p class="text-xs text-gray-500 mt-1">SKU: {{ part.sku }} | Cantidad: {{ part.cantidad }}</p>
-                  <p class="text-xs text-gray-600 mt-1">Costo: {{ part.costo }} | Precio: {{ part.precio }} | Margen: {{ part.porcentaje }}%</p>
+                  <p class="text-xs text-gray-500 mt-1">Cantidad: {{ part.cantidad }} | Costo: {{ part.costo }} | Precio: {{ part.precio }}</p>
                 </div>
                 <button
                   type="button"
@@ -664,14 +655,27 @@ export class VehicleDiagnosticComponent implements OnInit {
     this.diagnostic.items.splice(index, 1);
   }
 
-  calculatePartMargin() {
+  calculatePartPricing() {
     const costo = this.newPart.costo || 0;
-    const precio = this.newPart.precio || 0;
 
-    if (costo > 0 && precio > 0) {
-      this.newPart.margen = precio - costo;
-      this.newPart.porcentaje = ((this.newPart.margen / costo) * 100);
+    if (costo > 0) {
+      // Costo con IVA
+      const costoConIva = costo * 1.16;
+
+      // Precio de venta público (margen del 30% sobre costo con IVA)
+      const precio = costoConIva * 1.30;
+
+      // Margen
+      const margen = precio - costoConIva;
+
+      // Porcentaje de margen
+      const porcentaje = ((margen / costoConIva) * 100);
+
+      this.newPart.precio = parseFloat(precio.toFixed(2));
+      this.newPart.margen = parseFloat(margen.toFixed(2));
+      this.newPart.porcentaje = parseFloat(porcentaje.toFixed(2));
     } else {
+      this.newPart.precio = 0;
       this.newPart.margen = 0;
       this.newPart.porcentaje = 0;
     }
@@ -679,11 +683,10 @@ export class VehicleDiagnosticComponent implements OnInit {
 
   canAddPart(): boolean {
     return !!(
-      this.newPart.sku &&
       this.newPart.descripcion &&
       this.newPart.cantidad &&
       this.newPart.costo &&
-      this.newPart.precio &&
+      this.newPart.costo > 0 &&
       this.diagnostic.items.length > 0
     );
   }
@@ -694,9 +697,12 @@ export class VehicleDiagnosticComponent implements OnInit {
     // Obtener la severidad del último servicio agregado
     const lastItem = this.diagnostic.items[this.diagnostic.items.length - 1];
 
+    // Generar SKU automático si no se proporcionó
+    const sku = this.newPart.sku || `DIAG-${Date.now()}`;
+
     const part: DiagnosticPart = {
       id: Date.now().toString(),
-      sku: this.newPart.sku!,
+      sku: sku,
       descripcion: this.newPart.descripcion!,
       cantidad: this.newPart.cantidad!,
       costo: this.newPart.costo!,
