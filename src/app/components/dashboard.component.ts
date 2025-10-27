@@ -911,6 +911,64 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  transferDiagnosticToExistingOrder(order: Order) {
+    if (!order.diagnostic) return;
+
+    // Inicializar arrays si no existen
+    if (!order.servicios) {
+      order.servicios = [];
+    }
+    if (!order.productos) {
+      order.productos = [];
+    }
+
+    // Eliminar servicios y productos previos del diagnóstico para evitar duplicados
+    order.servicios = order.servicios.filter(s => !s.fromDiagnostic);
+    order.productos = order.productos.filter(p => !p.fromDiagnostic);
+
+    // Transferir items de diagnóstico (servicios) a mano de obra
+    if (order.diagnostic.items && order.diagnostic.items.length > 0) {
+      order.diagnostic.items.forEach(item => {
+        // Solo agregar si el item tiene información de servicio
+        if (item.serviceSku && item.serviceName) {
+          const service: Service = {
+            sku: item.serviceSku,
+            nombre: item.serviceName,
+            descripcion: item.description,
+            categoria: item.category,
+            precio: item.servicePrice || item.estimatedCost || 0,
+            fromDiagnostic: true,
+            diagnosticSeverity: item.severity
+          };
+          order.servicios!.push(service);
+        }
+      });
+    }
+
+    // Transferir refacciones del diagnóstico a productos
+    if (order.diagnostic.parts && order.diagnostic.parts.length > 0) {
+      order.diagnostic.parts.forEach(part => {
+        const product: Product = {
+          sku: part.sku,
+          descripcion: part.descripcion,
+          cantidad: part.cantidad,
+          costo: part.costo,
+          precio: part.precio,
+          margen: part.margen,
+          porcentaje: part.porcentaje,
+          fromDiagnostic: true,
+          diagnosticSeverity: part.severity
+        };
+        order.productos.push(product);
+      });
+    }
+
+    // Recalcular presupuesto
+    const totalProductos = order.productos.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
+    const totalServicios = order.servicios.reduce((sum, s) => sum + s.precio, 0);
+    order.presupuesto = totalProductos + totalServicios;
+  }
+
   async onCreateOrder() {
     const missingFields: string[] = [];
 
@@ -1489,8 +1547,14 @@ export class DashboardComponent implements OnInit {
 
   async saveDiagnosticEdit(diagnostic: VehicleDiagnostic) {
     if (!this.selectedOrder) return;
+
+    // Actualizar el diagnóstico
     this.selectedOrder.diagnostic = diagnostic;
     this.selectedOrder.technician_name = diagnostic.technicianName;
+
+    // Transferir items del diagnóstico a servicios y refacciones
+    this.transferDiagnosticToExistingOrder(this.selectedOrder);
+
     await this.updateOrderInDatabase(this.selectedOrder);
     this.isEditingDiagnostic = false;
     this.editingDiagnosticData = null;
