@@ -154,24 +154,6 @@ import { CustomerService } from '../services/customer.service';
           </div>
         </div>
 
-        <div *ngIf="hideVehicleSelection" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h4 class="text-sm font-medium text-blue-900 mb-1">Información del Técnico</h4>
-              <p class="text-xs text-gray-600">El vehículo ya está seleccionado arriba</p>
-            </div>
-          </div>
-          <div class="mt-3">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Técnico</label>
-            <input
-              type="text"
-              [(ngModel)]="diagnostic.technicianName"
-              [readonly]="!!currentUserName"
-              [class]="currentUserName ? 'w-full border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-700 text-sm cursor-not-allowed' : 'w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm'"
-              placeholder="Nombre del técnico"
-            />
-          </div>
-        </div>
 
         <div class="bg-gray-50 rounded-lg p-4">
           <h4 class="text-sm font-medium text-gray-900 mb-3">Agregar Item de Diagnóstico</h4>
