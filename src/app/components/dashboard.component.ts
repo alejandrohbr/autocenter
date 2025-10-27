@@ -2273,29 +2273,97 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    const confirmacion = confirm(
-      `¿Estás seguro de que deseas eliminar este presupuesto?\n\n` +
-      `Folio: ${order.folio}\n` +
-      `Cliente: ${order.cliente}\n` +
-      `Monto: $${order.presupuesto.toFixed(2)}\n\n` +
-      `Esta acción NO se puede deshacer.`
-    );
-
-    if (!confirmacion) return;
-
     try {
-      const { error } = await this.customerService.client
+      // 1. Contar datos relacionados que serán eliminados
+      const [authorizationsResult, invoicesResult, xmlProductsResult, lostSalesResult] = await Promise.all([
+        this.customerService.client.from('diagnostic_items_authorization').select('id', { count: 'exact', head: true }).eq('order_id', order.id),
+        this.customerService.client.from('order_invoices').select('id', { count: 'exact', head: true }).eq('order_id', order.id),
+        this.customerService.client.from('xml_products').select('id', { count: 'exact', head: true }).eq('order_id', order.id),
+        this.customerService.client.from('lost_sales').select('id', { count: 'exact', head: true }).eq('order_id', order.id)
+      ]);
+
+      const authCount = authorizationsResult.count || 0;
+      const invoiceCount = invoicesResult.count || 0;
+      const xmlCount = xmlProductsResult.count || 0;
+      const lostSalesCount = lostSalesResult.count || 0;
+
+      let relatedDataMessage = '\nDatos relacionados que serán eliminados:';
+      if (authCount > 0) relatedDataMessage += `\n• ${authCount} autorizaciones de diagnóstico`;
+      if (invoiceCount > 0) relatedDataMessage += `\n• ${invoiceCount} facturas`;
+      if (xmlCount > 0) relatedDataMessage += `\n• ${xmlCount} productos XML`;
+      if (lostSalesCount > 0) relatedDataMessage += `\n• ${lostSalesCount} ventas perdidas`;
+
+      if (authCount === 0 && invoiceCount === 0 && xmlCount === 0 && lostSalesCount === 0) {
+        relatedDataMessage = '\nNo hay datos relacionados.';
+      }
+
+      const confirmacion = confirm(
+        `¿Estás seguro de que deseas eliminar este presupuesto?\n\n` +
+        `Folio: ${order.folio}\n` +
+        `Cliente: ${order.cliente}\n` +
+        `Monto: $${order.presupuesto.toFixed(2)}\n` +
+        relatedDataMessage +
+        `\n\nEsta acción NO se puede deshacer.`
+      );
+
+      if (!confirmacion) return;
+
+      // 2. Eliminar el presupuesto (cascada automática)
+      const { error: deleteError } = await this.customerService.client
         .from('orders')
         .delete()
         .eq('id', order.id);
 
-      if (error) {
-        console.error('Error eliminando presupuesto:', error);
-        alert('Error al eliminar el presupuesto: ' + error.message);
+      if (deleteError) {
+        console.error('Error eliminando presupuesto:', deleteError);
+        alert('Error al eliminar el presupuesto: ' + deleteError.message);
         return;
       }
 
-      alert('Presupuesto eliminado exitosamente');
+      // 3. Registrar en audit_logs
+      const auditData = {
+        user_id: this.user?.id,
+        action: 'delete_order',
+        table_name: 'orders',
+        record_id: order.id,
+        changes: {
+          deleted_order: {
+            folio: order.folio,
+            cliente: order.cliente,
+            presupuesto: order.presupuesto,
+            status: order.status,
+            deleted_at: new Date().toISOString()
+          },
+          related_data_deleted: {
+            authorizations: authCount,
+            invoices: invoiceCount,
+            xml_products: xmlCount,
+            lost_sales: lostSalesCount
+          }
+        }
+      };
+
+      const { error: auditError } = await this.customerService.client
+        .from('audit_logs')
+        .insert(auditData);
+
+      if (auditError) {
+        console.error('Error registrando auditoría:', auditError);
+        // No detenemos el flujo por error en auditoría
+      }
+
+      // 4. Mostrar resumen de eliminación
+      let successMessage = `Presupuesto eliminado exitosamente.\n\n`;
+      successMessage += `Folio: ${order.folio}\n`;
+      if (authCount > 0 || invoiceCount > 0 || xmlCount > 0 || lostSalesCount > 0) {
+        successMessage += `\nDatos relacionados eliminados:`;
+        if (authCount > 0) successMessage += `\n• ${authCount} autorizaciones`;
+        if (invoiceCount > 0) successMessage += `\n• ${invoiceCount} facturas`;
+        if (xmlCount > 0) successMessage += `\n• ${xmlCount} productos XML`;
+        if (lostSalesCount > 0) successMessage += `\n• ${lostSalesCount} ventas perdidas`;
+      }
+
+      alert(successMessage);
       await this.loadOrders();
     } catch (error: any) {
       console.error('Error eliminando presupuesto:', error);
