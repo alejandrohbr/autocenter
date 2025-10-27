@@ -186,7 +186,7 @@
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-sm font-medium text-gray-600">Ingresos Totales</p>
-                  <p class="text-3xl font-bold text-gray-900 mt-2">\${{ adminStats.totalRevenue | number:'1.2-2' }}</p>
+                  <p class="text-3xl font-bold text-gray-900 mt-2">${{ adminStats.totalRevenue | number:'1.2-2' }}</p>
                   <p class="text-sm text-gray-600 mt-1">{{ adminStats.totalCustomers }} clientes</p>
                 </div>
                 <div class="bg-purple-100 rounded-full p-3">
@@ -368,7 +368,7 @@
                   <div class="text-xs text-gray-500">{{ order.fecha | date:'HH:mm' }}</div>
                 </td>
                 <td class="px-3 py-3 text-right">
-                  <div class="text-sm font-semibold text-gray-900">\${{ order.presupuesto | number:'1.0-0' }}</div>
+                  <div class="text-sm font-semibold text-gray-900">${{ order.presupuesto | number:'1.0-0' }}</div>
                 </td>
                 <td class="px-3 py-3">
                   <span [class]="getStatusClass(order.status)" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium truncate max-w-full">
@@ -832,9 +832,9 @@
                   <tbody class="bg-white divide-y divide-gray-200">
                     <tr *ngFor="let product of newOrder.productos; let i = index">
                       <td class="px-3 py-2 text-sm text-gray-900">{{ product.descripcion }}</td>
-                      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">\${{ (product.costoConIva || 0).toFixed(2) }}</td>
-                      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-green-600">\${{ (product.precioVentaPublico || 0).toFixed(2) }}</td>
-                      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-blue-600">\${{ (product.margen || 0).toFixed(2) }}</td>
+                      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">${{ (product.costoConIva || 0).toFixed(2) }}</td>
+                      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-green-600">${{ (product.precioVentaPublico || 0).toFixed(2) }}</td>
+                      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-blue-600">${{ (product.margen || 0).toFixed(2) }}</td>
                       <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{{ (product.porcentajeMargen || 0).toFixed(2) }}%</td>
                       <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{{ product.cantidad }}</td>
                       <td class="px-3 py-2 whitespace-nowrap text-sm font-medium">
@@ -896,7 +896,7 @@
                     >
                       <option value="">Seleccionar servicio</option>
                       <option *ngFor="let service of availableServices" [value]="service.sku">
-                        {{ service.nombre }} - \${{ service.precioConIva.toFixed(2) }}
+                        {{ service.nombre }} - ${{ service.precioConIva.toFixed(2) }}
                       </option>
                     </select>
                   </div>
@@ -909,7 +909,7 @@
                       <p class="text-xs text-gray-500 mt-1">SKU: {{ selectedServiceData.sku }}</p>
                     </div>
                     <div class="text-right">
-                      <p class="text-sm font-semibold text-green-600">Precio: \${{ selectedServiceData.precioConIva.toFixed(2) }}</p>
+                      <p class="text-sm font-semibold text-green-600">Precio: ${{ selectedServiceData.precioConIva.toFixed(2) }}</p>
                     </div>
                   </div>
                   <p class="text-sm text-gray-700 mt-2">{{ selectedServiceData.descripcion }}</p>
@@ -950,7 +950,7 @@
                       <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ service.sku }}</td>
                       <td class="px-4 py-2 text-sm text-gray-900">{{ service.nombre }}</td>
                       <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ service.categoria }}</td>
-                      <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">\${{ service.precio.toFixed(2) }}</td>
+                      <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">${{ service.precio.toFixed(2) }}</td>
                       <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
                         <button
                           type="button"
@@ -1060,15 +1060,15 @@
                 <div class="w-64">
                   <div class="flex justify-between py-2">
                     <span class="text-sm text-gray-600">Refacciones:</span>
-                    <span class="text-sm font-medium">\${{ getProductsTotal().toFixed(2) }}</span>
+                    <span class="text-sm font-medium">${{ getProductsTotal().toFixed(2) }}</span>
                   </div>
                   <div class="flex justify-between py-2">
                     <span class="text-sm text-gray-600">Servicios:</span>
-                    <span class="text-sm font-medium">\${{ getServicesTotal().toFixed(2) }}</span>
+                    <span class="text-sm font-medium">${{ getServicesTotal().toFixed(2) }}</span>
                   </div>
                   <div class="flex justify-between py-2 border-t border-gray-200">
                     <span class="text-base font-medium text-gray-900">Total:</span>
-                    <span class="text-base font-medium text-gray-900">\${{ getOrderTotal().toFixed(2) }}</span>
+                    <span class="text-base font-medium text-gray-900">${{ getOrderTotal().toFixed(2) }}</span>
                   </div>
                 </div>
               </div>
@@ -1150,7 +1150,7 @@
                   </div>
                   <div>
                     <p class="text-xs text-gray-500 font-medium">Presupuesto</p>
-                    <p class="text-sm font-bold text-green-600">\${{ order.presupuesto | number:'1.2-2' }}</p>
+                    <p class="text-sm font-bold text-green-600">${{ order.presupuesto | number:'1.2-2' }}</p>
                   </div>
                   <div>
                     <p class="text-xs text-gray-500 font-medium">Refacciones XML</p>
@@ -1164,7 +1164,7 @@
                     <div *ngFor="let product of order.xmlProducts.slice(0, 4)" class="text-xs">
                       <span class="text-gray-600">{{ product.descripcion }}</span>
                       <span class="text-gray-400"> - </span>
-                      <span class="font-semibold text-gray-900">\${{ product.total | number:'1.2-2' }}</span>
+                      <span class="font-semibold text-gray-900">${{ product.total | number:'1.2-2' }}</span>
                     </div>
                     <div *ngIf="order.xmlProducts.length > 4" class="text-xs text-gray-500 italic">
                       ... y {{ order.xmlProducts.length - 4 }} productos más
@@ -1263,7 +1263,7 @@
                   </div>
                   <div>
                     <p class="text-xs text-gray-500 font-medium">Total</p>
-                    <p class="text-sm font-bold text-green-600">\\${{ order.presupuesto | number:'1.2-2' }}</p>
+                    <p class="text-sm font-bold text-green-600">${{ order.presupuesto | number:'1.2-2' }}</p>
                   </div>
                   <div>
                     <p class="text-xs text-gray-500 font-medium">Productos Procesados</p>
@@ -1392,13 +1392,13 @@
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  \\${{ product.precio | number:'1.2-2' }}
+                  ${{ product.precio | number:'1.2-2' }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {{ product.cantidad }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                  \\${{ product.total | number:'1.2-2' }}
+                  ${{ product.total | number:'1.2-2' }}
                 </td>
               </tr>
             </tbody>
@@ -1411,7 +1411,7 @@
               Total de productos auto-clasificados: <span class="font-semibold">{{ notFoundProductsCount }}</span>
             </p>
             <p class="text-sm font-semibold text-gray-900">
-              Total: \\${{ getNotFoundProductsTotal() | number:'1.2-2' }}
+              Total: ${{ getNotFoundProductsTotal() | number:'1.2-2' }}
             </p>
           </div>
         </div>
@@ -1608,7 +1608,7 @@
               </div>
               <div class="bg-teal-50 rounded-lg p-4">
                 <p class="text-xs text-teal-700 font-semibold mb-1">PRESUPUESTO</p>
-                <p class="text-lg font-bold text-teal-900">\${{ selectedOrder.presupuesto | number:'1.2-2' }}</p>
+                <p class="text-lg font-bold text-teal-900">${{ selectedOrder.presupuesto | number:'1.2-2' }}</p>
               </div>
               <div *ngIf="selectedOrder.promotion" class="bg-pink-50 rounded-lg p-4">
                 <p class="text-xs text-pink-700 font-semibold mb-1">PROMOCIÓN</p>
@@ -2014,7 +2014,7 @@
                     <td class="py-3 px-4 text-sm font-medium text-gray-900">{{ service.nombre }}</td>
                     <td class="py-3 px-4 text-sm text-gray-600">{{ service.categoria }}</td>
                     <td class="py-3 px-4 text-sm text-gray-600">{{ service.descripcion }}</td>
-                    <td class="py-3 px-4 text-right text-sm font-semibold text-green-600">\${{ service.precio | number:'1.2-2' }}</td>
+                    <td class="py-3 px-4 text-right text-sm font-semibold text-green-600">${{ service.precio | number:'1.2-2' }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -2064,7 +2064,7 @@
                         Pendiente
                       </span>
                     </td>
-                    <td class="py-3 px-4 text-right text-sm font-semibold text-blue-600">\${{ auth.estimated_cost | number:'1.2-2' }}</td>
+                    <td class="py-3 px-4 text-right text-sm font-semibold text-blue-600">${{ auth.estimated_cost | number:'1.2-2' }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -2074,7 +2074,7 @@
           <div class="bg-gray-50 rounded-lg p-4">
             <div class="flex justify-between items-center">
               <span class="font-semibold text-gray-900">Total Servicios:</span>
-              <span class="text-xl font-bold text-green-600">\${{ getTotalServicesAmount(selectedOrder) | number:'1.2-2' }}</span>
+              <span class="text-xl font-bold text-green-600">${{ getTotalServicesAmount(selectedOrder) | number:'1.2-2' }}</span>
             </div>
           </div>
         </div>
@@ -2104,7 +2104,7 @@
                 >
                   <option value="">Seleccionar servicio</option>
                   <option *ngFor="let service of availableServicesEdit" [value]="service.sku">
-                    {{ service.nombre }} - \${{ service.precioConIva }}
+                    {{ service.nombre }} - ${{ service.precioConIva }}
                   </option>
                 </select>
               </div>
@@ -2136,7 +2136,7 @@
                 <td class="py-2 px-3 text-sm">{{ service.nombre }}</td>
                 <td class="py-2 px-3 text-sm">{{ service.categoria }}</td>
                 <td class="py-2 px-3 text-sm">{{ service.descripcion }}</td>
-                <td class="py-2 px-3 text-right text-sm">\${{ service.precio | number:'1.2-2' }}</td>
+                <td class="py-2 px-3 text-right text-sm">${{ service.precio | number:'1.2-2' }}</td>
                 <td class="py-2 px-3 text-center">
                   <button (click)="removeServiceFromEdit(i)" class="text-red-600 hover:text-red-800 text-sm font-medium">Eliminar</button>
                 </td>
@@ -2217,7 +2217,7 @@
                 </div>
                 <div class="text-right ml-4">
                   <div class="text-lg font-bold" [class.text-green-600]="auth.is_authorized" [class.text-red-600]="!auth.is_authorized">
-                    \${{ auth.estimated_cost.toFixed(2) }}
+                    ${{ auth.estimated_cost.toFixed(2) }}
                   </div>
                   <div *ngIf="auth.authorization_date" class="text-xs text-gray-500 mt-1">
                     {{ auth.authorization_date | date:'short' }}
@@ -2253,7 +2253,7 @@
                   <p class="text-sm text-green-800" *ngIf="invoice.rfc_proveedor"><strong>RFC:</strong> {{ invoice.rfc_proveedor }}</p>
                 </div>
                 <div class="text-right">
-                  <p class="text-2xl font-bold text-green-700">\${{ invoice.total_amount | number:'1.2-2' }}</p>
+                  <p class="text-2xl font-bold text-green-700">${{ invoice.total_amount | number:'1.2-2' }}</p>
                   <p class="text-xs text-green-600 mt-1">{{ invoice.validados || 0 }} validados</p>
                 </div>
               </div>
@@ -2274,7 +2274,7 @@
                     <span class="mx-2">•</span>
                     {{ grupo.productos.length }} productos
                     <span class="mx-2">•</span>
-                    Total: \${{ grupo.montoTotal.toFixed(2) }}
+                    Total: ${{ grupo.montoTotal.toFixed(2) }}
                   </p>
                 </div>
                 <div class="flex gap-3">
@@ -2316,7 +2316,7 @@
                       </div>
                     </td>
                     <td class="px-4 py-4 text-right text-sm font-semibold text-gray-900">
-                      \${{ producto.precio.toFixed(2) }}
+                      ${{ producto.precio.toFixed(2) }}
                     </td>
                     <td class="px-4 py-4 text-center text-sm text-gray-700">
                       <span *ngIf="producto.division" class="font-mono bg-gray-100 px-2 py-1 rounded">{{ producto.division }}</span>
@@ -2338,7 +2338,7 @@
                       {{ producto.cantidad }}
                     </td>
                     <td class="px-4 py-4 text-right text-sm font-bold text-gray-900">
-                      \${{ producto.total.toFixed(2) }}
+                      ${{ producto.total.toFixed(2) }}
                     </td>
                     <td class="px-4 py-4 text-center">
                       <span *ngIf="producto.isNew" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
@@ -2362,7 +2362,7 @@
                 {{ grupo.productos.length }} productos en total
               </div>
               <div class="text-lg font-bold text-gray-900">
-                Total: \\${{ grupo.montoTotal.toFixed(2) }}
+                Total: ${{ grupo.montoTotal.toFixed(2) }}
               </div>
             </div>
           </div>
