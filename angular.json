@@ -27,7 +27,12 @@
           },
           "options": {
             "assets": [
-              "src/web.config"
+              "src/web.config",
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
+              }
             ],
             "index": "src/index.html",
             "browser": "src/main.ts",
