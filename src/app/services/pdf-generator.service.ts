@@ -114,12 +114,12 @@ export class PdfGeneratorService {
             font-size: 11px;
           }
           .header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            color: white;
+            background: white;
+            color: #333;
             padding: 12px;
             text-align: center;
             margin-bottom: 10px;
-            border-radius: 4px;
+            border-bottom: 2px solid #e5e7eb;
           }
           .header h1 {
             margin: 0;
@@ -243,16 +243,14 @@ export class PdfGeneratorService {
       </head>
       <body>
         <div class="header">
-          <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 15px;">
-            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 50px; width: auto; object-fit: contain;">` : '<div style="width: 50px;"></div>'}
-            <div style="flex: 1; text-align: center;">
-              ${this.logoAutoCenter ? `<img src="${this.logoAutoCenter}" alt="Auto Center" style="height: 50px; width: auto; margin-bottom: 5px; object-fit: contain;">` : ''}
-              <h1>AUTO CENTER</h1>
-              <h2>Manejamos Confianza</h2>
-              ${order.tienda ? `<h2 style="margin-top: 5px; font-weight: bold;">${order.tienda}</h2>` : ''}
-            </div>
-            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 50px; width: auto; object-fit: contain;">` : '<div style="width: 50px;"></div>'}
+          <div style="display: flex; align-items: center; justify-content: center; gap: 30px; padding: 10px;">
+            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 60px; width: auto; object-fit: contain;">` : ''}
+            ${this.logoAutoCenter ? `<img src="${this.logoAutoCenter}" alt="Auto Center" style="height: 60px; width: auto; object-fit: contain;">` : ''}
           </div>
+          ${order.tienda ? `<div style="text-align: center; margin-top: 10px;">
+            <h1 style="font-size: 24px; color: #1e40af; margin: 0;">${order.tienda}</h1>
+            <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">Satélite Taller Mecánico</p>
+          </div>` : ''}
         </div>
 
         <div class="folio-date">
