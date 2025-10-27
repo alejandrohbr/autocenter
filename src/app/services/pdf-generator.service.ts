@@ -9,42 +9,7 @@ import html2canvas from 'html2canvas';
   providedIn: 'root'
 })
 export class PdfGeneratorService {
-  private logoAutoCenter: string = '';
-  private logoSears: string = '';
-
-  constructor() {
-    this.loadLogos();
-  }
-
-  private loadLogos(): void {
-    const imgAutoCenter = new Image();
-    imgAutoCenter.crossOrigin = 'Anonymous';
-    imgAutoCenter.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = imgAutoCenter.width;
-      canvas.height = imgAutoCenter.height;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(imgAutoCenter, 0, 0);
-        this.logoAutoCenter = canvas.toDataURL('image/jpeg');
-      }
-    };
-    imgAutoCenter.src = '/assets/AUTOCENTER.jpg';
-
-    const imgSears = new Image();
-    imgSears.crossOrigin = 'Anonymous';
-    imgSears.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = imgSears.width;
-      canvas.height = imgSears.height;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(imgSears, 0, 0);
-        this.logoSears = canvas.toDataURL('image/png');
-      }
-    };
-    imgSears.src = '/assets/searsicono.png';
-  }
+  constructor() {}
 
   generateDiagnosticBudgetHTML(order: Order, customer: Customer): string {
     const today = new Date().toLocaleDateString('es-MX');
@@ -262,14 +227,14 @@ export class PdfGeneratorService {
       <body>
         <div class="header">
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 15px;">
-            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 50px; width: auto;">` : '<div style="width: 50px;"></div>'}
+            <img src="/assets/searsicono.png" alt="Sears" style="height: 50px; width: auto;">
             <div style="flex: 1; text-align: center;">
-              ${this.logoAutoCenter ? `<img src="${this.logoAutoCenter}" alt="Auto Center" style="height: 50px; width: auto; margin-bottom: 5px;">` : ''}
+              <img src="/assets/AUTOCENTER.jpg" alt="Auto Center" style="height: 50px; width: auto; margin-bottom: 5px;">
               <h1>AUTO CENTER</h1>
               <h2>Manejamos Confianza</h2>
               ${order.tienda ? `<h2 style="margin-top: 5px; font-weight: bold;">${order.tienda}</h2>` : ''}
             </div>
-            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 50px; width: auto;">` : '<div style="width: 50px;"></div>'}
+            <img src="/assets/searsicono.png" alt="Sears" style="height: 50px; width: auto;">
           </div>
         </div>
 
