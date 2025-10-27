@@ -242,8 +242,121 @@ import {
             [disabled]="!canAddItem()"
             class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
           >
-            Agregar Item
+            Agregar Mano de Obra
           </button>
+        </div>
+
+        <!-- Sección para agregar refacciones relacionadas -->
+        <div *ngIf="diagnostic.items.length > 0" class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+          <h4 class="text-sm font-medium text-orange-900 mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+            Agregar Refacciones para el Servicio
+          </h4>
+
+          <div class="mb-3 text-sm text-orange-800">
+            <p>Relacionadas con: <strong>{{ diagnostic.items.length > 0 ? diagnostic.items[diagnostic.items.length - 1].item : '' }}</strong></p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">SKU / Código</label>
+              <input
+                type="text"
+                [(ngModel)]="newPart.sku"
+                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm"
+                placeholder="SKU de la refacción"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+              <input
+                type="text"
+                [(ngModel)]="newPart.descripcion"
+                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm"
+                placeholder="Nombre de la refacción"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+              <input
+                type="number"
+                [(ngModel)]="newPart.cantidad"
+                min="1"
+                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Costo</label>
+              <input
+                type="number"
+                [(ngModel)]="newPart.costo"
+                step="0.01"
+                (input)="calculatePartMargin()"
+                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+              <input
+                type="number"
+                [(ngModel)]="newPart.precio"
+                step="0.01"
+                (input)="calculatePartMargin()"
+                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Margen %</label>
+              <input
+                type="number"
+                [(ngModel)]="newPart.porcentaje"
+                readonly
+                class="w-full border-gray-300 rounded-md shadow-sm bg-gray-100 text-sm"
+              />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="addDiagnosticPart()"
+            [disabled]="!canAddPart()"
+            class="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+          >
+            Agregar Refacción
+          </button>
+
+          <!-- Lista de refacciones agregadas -->
+          <div *ngIf="diagnostic.parts && diagnostic.parts.length > 0" class="mt-4 space-y-2">
+            <h5 class="text-sm font-medium text-gray-900">Refacciones agregadas ({{ diagnostic.parts.length }})</h5>
+            <div *ngFor="let part of diagnostic.parts; let i = index" class="bg-white border border-gray-200 rounded p-3">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span [class]="'inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ' + getSeverityBadgeColor(part.severity)">
+                      {{ getSeverityIcon(part.severity) }} {{ getSeverityLabel(part.severity) }}
+                    </span>
+                    <span class="font-medium text-gray-900">{{ part.descripcion }}</span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">SKU: {{ part.sku }} | Cantidad: {{ part.cantidad }}</p>
+                  <p class="text-xs text-gray-600 mt-1">Costo: {{ part.costo }} | Precio: {{ part.precio }} | Margen: {{ part.porcentaje }}%</p>
+                </div>
+                <button
+                  type="button"
+                  (click)="removeDiagnosticPart(i)"
+                  class="text-red-600 hover:text-red-800"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div *ngIf="diagnostic.items.length > 0" class="space-y-3">
@@ -407,6 +520,17 @@ export class VehicleDiagnosticComponent implements OnInit {
     { value: 'good' as DiagnosticSeverity, label: 'Bien', icon: '✓' },
   ];
 
+  // Refacciones del diagnóstico
+  newPart: Partial<DiagnosticPart> = {
+    sku: '',
+    descripcion: '',
+    cantidad: 1,
+    costo: 0,
+    precio: 0,
+    margen: 0,
+    porcentaje: 0,
+  };
+
   constructor(private customerService: CustomerService) {}
 
   async ngOnInit() {
@@ -540,6 +664,76 @@ export class VehicleDiagnosticComponent implements OnInit {
     this.diagnostic.items.splice(index, 1);
   }
 
+  calculatePartMargin() {
+    const costo = this.newPart.costo || 0;
+    const precio = this.newPart.precio || 0;
+
+    if (costo > 0 && precio > 0) {
+      this.newPart.margen = precio - costo;
+      this.newPart.porcentaje = ((this.newPart.margen / costo) * 100);
+    } else {
+      this.newPart.margen = 0;
+      this.newPart.porcentaje = 0;
+    }
+  }
+
+  canAddPart(): boolean {
+    return !!(
+      this.newPart.sku &&
+      this.newPart.descripcion &&
+      this.newPart.cantidad &&
+      this.newPart.costo &&
+      this.newPart.precio &&
+      this.diagnostic.items.length > 0
+    );
+  }
+
+  addDiagnosticPart() {
+    if (!this.canAddPart()) return;
+
+    // Obtener la severidad del último servicio agregado
+    const lastItem = this.diagnostic.items[this.diagnostic.items.length - 1];
+
+    const part: DiagnosticPart = {
+      id: Date.now().toString(),
+      sku: this.newPart.sku!,
+      descripcion: this.newPart.descripcion!,
+      cantidad: this.newPart.cantidad!,
+      costo: this.newPart.costo!,
+      precio: this.newPart.precio!,
+      margen: this.newPart.margen!,
+      porcentaje: this.newPart.porcentaje!,
+      severity: lastItem.severity,
+      relatedServiceId: lastItem.id,
+    };
+
+    if (!this.diagnostic.parts) {
+      this.diagnostic.parts = [];
+    }
+
+    this.diagnostic.parts.push(part);
+
+    // Resetear el formulario
+    this.newPart = {
+      sku: '',
+      descripcion: '',
+      cantidad: 1,
+      costo: 0,
+      precio: 0,
+      margen: 0,
+      porcentaje: 0,
+    };
+
+    this.diagnosticChange.emit(this.diagnostic);
+  }
+
+  removeDiagnosticPart(index: number) {
+    if (this.diagnostic.parts) {
+      this.diagnostic.parts.splice(index, 1);
+      this.diagnosticChange.emit(this.diagnostic);
+    }
+  }
+
   saveDiagnostic() {
     this.diagnostic.completedAt = new Date();
 
@@ -565,6 +759,10 @@ export class VehicleDiagnosticComponent implements OnInit {
 
   getSeverityLabel(severity: DiagnosticSeverity): string {
     return getSeverityLabel(severity);
+  }
+
+  getSeverityIcon(severity: DiagnosticSeverity): string {
+    return getSeverityIcon(severity);
   }
 
   formatPrice(price: number): string {

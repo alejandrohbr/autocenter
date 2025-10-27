@@ -24,6 +24,8 @@ export interface Product {
   subclase?: string;
   isValidated?: boolean;
   isProcessed?: boolean;
+  fromDiagnostic?: boolean;
+  diagnosticSeverity?: DiagnosticSeverity;
 }
 
 export interface Service {
@@ -32,6 +34,8 @@ export interface Service {
   descripcion: string;
   categoria: string;
   precio: number;
+  fromDiagnostic?: boolean;
+  diagnosticSeverity?: DiagnosticSeverity;
 }
 
 export interface DiagnosticItemAuthorization {

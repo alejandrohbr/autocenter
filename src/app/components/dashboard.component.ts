@@ -862,6 +862,55 @@ export class DashboardComponent implements OnInit {
     return this.getProductsTotal() + this.getServicesTotal();
   }
 
+  transferDiagnosticToOrder() {
+    if (!this.newOrder.diagnostic) return;
+
+    // Inicializar arrays si no existen
+    if (!this.newOrder.servicios) {
+      this.newOrder.servicios = [];
+    }
+    if (!this.newOrder.productos) {
+      this.newOrder.productos = [];
+    }
+
+    // Transferir items de diagnóstico (servicios) a mano de obra
+    if (this.newOrder.diagnostic.items && this.newOrder.diagnostic.items.length > 0) {
+      this.newOrder.diagnostic.items.forEach(item => {
+        // Solo agregar si el item tiene información de servicio
+        if (item.serviceSku && item.serviceName) {
+          const service: Service = {
+            sku: item.serviceSku,
+            nombre: item.serviceName,
+            descripcion: item.description,
+            categoria: item.category,
+            precio: item.servicePrice || item.estimatedCost || 0,
+            fromDiagnostic: true,
+            diagnosticSeverity: item.severity
+          };
+          this.newOrder.servicios!.push(service);
+        }
+      });
+    }
+
+    // Transferir refacciones del diagnóstico a productos
+    if (this.newOrder.diagnostic.parts && this.newOrder.diagnostic.parts.length > 0) {
+      this.newOrder.diagnostic.parts.forEach(part => {
+        const product: Product = {
+          sku: part.sku,
+          descripcion: part.descripcion,
+          cantidad: part.cantidad,
+          costo: part.costo,
+          precio: part.precio,
+          margen: part.margen,
+          porcentaje: part.porcentaje,
+          fromDiagnostic: true,
+          diagnosticSeverity: part.severity
+        };
+        this.newOrder.productos.push(product);
+      });
+    }
+  }
+
   async onCreateOrder() {
     const missingFields: string[] = [];
 
@@ -894,6 +943,9 @@ export class DashboardComponent implements OnInit {
         vehicleId = newVehicle?.id || null;
         this.selectedVehicle = newVehicle;
       }
+
+      // Transferir items del diagnóstico a servicios y refacciones
+      this.transferDiagnosticToOrder();
 
       const orderData = {
         folio: folio,
@@ -2097,5 +2149,18 @@ export class DashboardComponent implements OnInit {
 
   getNotFoundProductsTotal(): number {
     return this.notFoundProducts.reduce((sum, p) => sum + (p.total || 0), 0);
+  }
+
+  getDiagnosticBadgeClass(severity: any): string {
+    switch (severity) {
+      case 'urgent':
+        return 'bg-red-100 text-red-800 border-red-300';
+      case 'recommended':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'good':
+        return 'bg-green-100 text-green-800 border-green-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
   }
 }
