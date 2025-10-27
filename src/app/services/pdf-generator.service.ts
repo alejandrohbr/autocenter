@@ -11,10 +11,10 @@ import html2canvas from 'html2canvas';
 export class PdfGeneratorService {
   private logoAutoCenter: string = '';
   private logoSears: string = '';
-  private logosLoaded = false;
+  private logosPromise: Promise<void> | null = null;
 
   constructor() {
-    this.loadLogos();
+    this.logosPromise = this.loadLogos();
   }
 
   private async loadLogos(): Promise<void> {
@@ -29,11 +29,9 @@ export class PdfGeneratorService {
       this.logoSears = await this.imageToBase64('/assets/searsicono.png');
       console.log('Logo Sears cargado, tamaño:', this.logoSears.length);
 
-      this.logosLoaded = true;
       console.log('Todos los logos cargados exitosamente');
     } catch (error) {
       console.error('Error cargando logos:', error);
-      this.logosLoaded = true;
     }
   }
 
@@ -64,34 +62,14 @@ export class PdfGeneratorService {
     });
   }
 
-  private waitForLogos(): Promise<void> {
-    return new Promise((resolve) => {
-      if (this.logosLoaded) {
-        resolve();
-        return;
-      }
-
-      const checkInterval = setInterval(() => {
-        if (this.logosLoaded) {
-          clearInterval(checkInterval);
-          resolve();
-        }
-      }, 100);
-
-      // Timeout después de 5 segundos
-      setTimeout(() => {
-        clearInterval(checkInterval);
-        resolve();
-      }, 5000);
-    });
-  }
-
   public async ensureLogosLoaded(): Promise<void> {
-    await this.waitForLogos();
+    if (this.logosPromise) {
+      await this.logosPromise;
+    }
   }
 
   generateDiagnosticBudgetHTML(order: Order, customer: Customer): string {
-    console.log('Generando HTML. Logos cargados:', this.logosLoaded);
+    console.log('Generando HTML con logos');
     console.log('Logo AutoCenter disponible:', !!this.logoAutoCenter, 'Tamaño:', this.logoAutoCenter.length);
     console.log('Logo Sears disponible:', !!this.logoSears, 'Tamaño:', this.logoSears.length);
 
@@ -485,7 +463,7 @@ export class PdfGeneratorService {
   }
 
   async printDiagnosticBudget(order: Order, customer: Customer): Promise<void> {
-    await this.waitForLogos();
+    await this.ensureLogosLoaded();
     const html = this.generateDiagnosticBudgetHTML(order, customer);
     const printWindow = window.open('', '_blank');
 
@@ -501,7 +479,7 @@ export class PdfGeneratorService {
 
   async downloadDiagnosticBudgetPDF(order: Order, customer: Customer): Promise<void> {
     try {
-      await this.waitForLogos();
+      await this.ensureLogosLoaded();
       const element = document.createElement('div');
       element.innerHTML = this.generateDiagnosticBudgetHTML(order, customer);
       element.style.width = '210mm';
