@@ -19,50 +19,48 @@ export class PdfGeneratorService {
 
   private async loadLogos(): Promise<void> {
     try {
+      console.log('Iniciando carga de logos...');
+
       // Cargar logo Auto Center
-      const autoCenterBase64 = await this.imageToBase64('/assets/AUTOCENTER.jpg');
-      this.logoAutoCenter = autoCenterBase64;
+      this.logoAutoCenter = await this.imageToBase64('/assets/AUTOCENTER.jpg');
+      console.log('Logo AutoCenter cargado, tamaño:', this.logoAutoCenter.length);
 
       // Cargar logo Sears
-      const searsBase64 = await this.imageToBase64('/assets/searsicono.png');
-      this.logoSears = searsBase64;
+      this.logoSears = await this.imageToBase64('/assets/searsicono.png');
+      console.log('Logo Sears cargado, tamaño:', this.logoSears.length);
 
       this.logosLoaded = true;
+      console.log('Todos los logos cargados exitosamente');
     } catch (error) {
       console.error('Error cargando logos:', error);
-      this.logosLoaded = true; // Continuar aunque fallen
+      this.logosLoaded = true;
     }
   }
 
-  private imageToBase64(url: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-
-      img.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-
-          if (ctx) {
-            ctx.drawImage(img, 0, 0);
-            const dataURL = canvas.toDataURL('image/png');
-            resolve(dataURL);
-          } else {
-            reject(new Error('No se pudo obtener el contexto del canvas'));
+  private async imageToBase64(url: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      fetch(url)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
-        } catch (error) {
+          return response.blob();
+        })
+        .then(blob => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64data = reader.result as string;
+            resolve(base64data);
+          };
+          reader.onerror = () => {
+            reject(new Error('Error leyendo el archivo'));
+          };
+          reader.readAsDataURL(blob);
+        })
+        .catch(error => {
+          console.error(`Error cargando ${url}:`, error);
           reject(error);
-        }
-      };
-
-      img.onerror = () => {
-        reject(new Error(`No se pudo cargar la imagen: ${url}`));
-      };
-
-      img.src = url;
+        });
     });
   }
 
@@ -93,6 +91,10 @@ export class PdfGeneratorService {
   }
 
   generateDiagnosticBudgetHTML(order: Order, customer: Customer): string {
+    console.log('Generando HTML. Logos cargados:', this.logosLoaded);
+    console.log('Logo AutoCenter disponible:', !!this.logoAutoCenter, 'Tamaño:', this.logoAutoCenter.length);
+    console.log('Logo Sears disponible:', !!this.logoSears, 'Tamaño:', this.logoSears.length);
+
     const today = new Date().toLocaleDateString('es-MX');
     const diagnostic = order.diagnostic;
     const vehicleInfo = diagnostic?.vehicleInfo || {};
