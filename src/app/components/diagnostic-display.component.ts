@@ -116,27 +116,52 @@ import {
                   <p class="text-sm text-gray-700 ml-7">{{ item.description }}</p>
                   <p class="text-xs text-gray-500 ml-7 mt-1">{{ getCategoryName(item.category) }}</p>
                 </div>
-                <div *ngIf="showActions" class="flex gap-2 ml-4">
-                  <button
-                    (click)="onAuthorizeItem(item)"
-                    class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                    title="Autorizar servicio"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    Autorizar
-                  </button>
-                  <button
-                    (click)="onRejectItem(item)"
-                    class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                    title="Rechazar servicio"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    Rechazar
-                  </button>
+                <div class="ml-4">
+                  <div *ngIf="isItemSentToAuthorization(item)" class="flex flex-col gap-1">
+                    <span *ngIf="getAuthorizationStatus(item)?.is_authorized === true"
+                          class="px-3 py-1.5 bg-green-100 text-green-800 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Autorizado
+                    </span>
+                    <span *ngIf="getAuthorizationStatus(item)?.is_authorized === false"
+                          class="px-3 py-1.5 bg-red-100 text-red-800 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      Rechazado
+                    </span>
+                    <span *ngIf="getAuthorizationStatus(item)?.is_authorized === null"
+                          class="px-3 py-1.5 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      En Autorización
+                    </span>
+                  </div>
+                  <div *ngIf="showActions && !isItemSentToAuthorization(item)" class="flex gap-2">
+                    <button
+                      (click)="onAuthorizeItem(item)"
+                      class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                      title="Autorizar servicio"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Autorizar
+                    </button>
+                    <button
+                      (click)="onRejectItem(item)"
+                      class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                      title="Rechazar servicio"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      Rechazar
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -168,27 +193,52 @@ import {
                   <p class="text-sm text-gray-700 ml-7">{{ item.description }}</p>
                   <p class="text-xs text-gray-500 ml-7 mt-1">{{ getCategoryName(item.category) }}</p>
                 </div>
-                <div *ngIf="showActions" class="flex gap-2 ml-4">
-                  <button
-                    (click)="onAuthorizeItem(item)"
-                    class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                    title="Autorizar servicio"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    Autorizar
-                  </button>
-                  <button
-                    (click)="onRejectItem(item)"
-                    class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                    title="Rechazar servicio"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    Rechazar
-                  </button>
+                <div class="ml-4">
+                  <div *ngIf="isItemSentToAuthorization(item)" class="flex flex-col gap-1">
+                    <span *ngIf="getAuthorizationStatus(item)?.is_authorized === true"
+                          class="px-3 py-1.5 bg-green-100 text-green-800 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Autorizado
+                    </span>
+                    <span *ngIf="getAuthorizationStatus(item)?.is_authorized === false"
+                          class="px-3 py-1.5 bg-red-100 text-red-800 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      Rechazado
+                    </span>
+                    <span *ngIf="getAuthorizationStatus(item)?.is_authorized === null"
+                          class="px-3 py-1.5 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      En Autorización
+                    </span>
+                  </div>
+                  <div *ngIf="showActions && !isItemSentToAuthorization(item)" class="flex gap-2">
+                    <button
+                      (click)="onAuthorizeItem(item)"
+                      class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                      title="Autorizar servicio"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Autorizar
+                    </button>
+                    <button
+                      (click)="onRejectItem(item)"
+                      class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                      title="Rechazar servicio"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      Rechazar
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -220,27 +270,52 @@ import {
                   <p class="text-sm text-gray-700 ml-7">{{ item.description }}</p>
                   <p class="text-xs text-gray-500 ml-7 mt-1">{{ getCategoryName(item.category) }}</p>
                 </div>
-                <div *ngIf="showActions" class="flex gap-2 ml-4">
-                  <button
-                    (click)="onAuthorizeItem(item)"
-                    class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                    title="Autorizar servicio"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    Autorizar
-                  </button>
-                  <button
-                    (click)="onRejectItem(item)"
-                    class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                    title="Rechazar servicio"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    Rechazar
-                  </button>
+                <div class="ml-4">
+                  <div *ngIf="isItemSentToAuthorization(item)" class="flex flex-col gap-1">
+                    <span *ngIf="getAuthorizationStatus(item)?.is_authorized === true"
+                          class="px-3 py-1.5 bg-green-100 text-green-800 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Autorizado
+                    </span>
+                    <span *ngIf="getAuthorizationStatus(item)?.is_authorized === false"
+                          class="px-3 py-1.5 bg-red-100 text-red-800 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      Rechazado
+                    </span>
+                    <span *ngIf="getAuthorizationStatus(item)?.is_authorized === null"
+                          class="px-3 py-1.5 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-md flex items-center gap-1 whitespace-nowrap">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      En Autorización
+                    </span>
+                  </div>
+                  <div *ngIf="showActions && !isItemSentToAuthorization(item)" class="flex gap-2">
+                    <button
+                      (click)="onAuthorizeItem(item)"
+                      class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                      title="Autorizar servicio"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Autorizar
+                    </button>
+                    <button
+                      (click)="onRejectItem(item)"
+                      class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
+                      title="Rechazar servicio"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      Rechazar
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -291,6 +366,7 @@ import {
 export class DiagnosticDisplayComponent {
   @Input() diagnostic: VehicleDiagnostic | undefined;
   @Input() showActions: boolean = false; // Mostrar botones de autorizar/rechazar
+  @Input() diagnosticAuthorizations: any[] = []; // Items ya enviados a autorización
   @Output() itemAuthorized = new EventEmitter<DiagnosticItem>();
   @Output() itemRejected = new EventEmitter<DiagnosticItem>();
 
@@ -352,5 +428,19 @@ export class DiagnosticDisplayComponent {
   getCategoryName(categoryId: string): string {
     const category = this.categories.find(c => c.id === categoryId);
     return category?.name || categoryId;
+  }
+
+  // Verificar si un item ya fue enviado a autorización
+  isItemSentToAuthorization(item: DiagnosticItem): boolean {
+    return this.diagnosticAuthorizations.some(
+      auth => auth.diagnostic_item_id === item.id
+    );
+  }
+
+  // Obtener el estado de autorización de un item
+  getAuthorizationStatus(item: DiagnosticItem): any {
+    return this.diagnosticAuthorizations.find(
+      auth => auth.diagnostic_item_id === item.id
+    );
   }
 }
