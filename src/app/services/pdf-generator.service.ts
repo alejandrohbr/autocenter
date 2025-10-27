@@ -38,13 +38,17 @@ export class PdfGeneratorService {
       order.productos.forEach((producto, idx) => {
         let badge = '';
         if (producto.fromDiagnostic && producto.diagnosticSeverity) {
-          const severityLabel = producto.diagnosticSeverity === 'urgent' ? '⚠️ URGENTE' :
-                               producto.diagnosticSeverity === 'recommended' ? '⚡ RECOMENDADO' :
-                               '✓ BIEN';
+          // Badge para refacciones del diagnóstico con semáforo
+          const severityEmoji = producto.diagnosticSeverity === 'urgent' ? '🔴' :
+                               producto.diagnosticSeverity === 'recommended' ? '🟡' :
+                               '🟢';
           const severityColor = producto.diagnosticSeverity === 'urgent' ? '#dc2626' :
                                producto.diagnosticSeverity === 'recommended' ? '#f59e0b' :
                                '#10b981';
-          badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px;">${severityLabel}</span><br>`;
+          badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} RECOMENDADO</span><br>`;
+        } else {
+          // Badge para refacciones pre-autorizadas (manuales)
+          badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 PRE-AUTORIZADA</span><br>`;
         }
 
         productosRows += `
@@ -64,13 +68,17 @@ export class PdfGeneratorService {
       order.servicios.forEach((servicio, idx) => {
         let badge = '';
         if (servicio.fromDiagnostic && servicio.diagnosticSeverity) {
-          const severityLabel = servicio.diagnosticSeverity === 'urgent' ? '⚠️ URGENTE' :
-                               servicio.diagnosticSeverity === 'recommended' ? '⚡ RECOMENDADO' :
-                               '✓ BIEN';
+          // Badge para servicios del diagnóstico con semáforo
+          const severityEmoji = servicio.diagnosticSeverity === 'urgent' ? '🔴' :
+                               servicio.diagnosticSeverity === 'recommended' ? '🟡' :
+                               '🟢';
           const severityColor = servicio.diagnosticSeverity === 'urgent' ? '#dc2626' :
                                servicio.diagnosticSeverity === 'recommended' ? '#f59e0b' :
                                '#10b981';
-          badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px;">${severityLabel}</span><br>`;
+          badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} DIAGNÓSTICO</span><br>`;
+        } else {
+          // Badge para servicios pre-autorizados (manuales)
+          badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 PRE-AUTORIZADA</span><br>`;
         }
 
         serviciosRows += `
@@ -91,9 +99,13 @@ export class PdfGeneratorService {
     let diagnosticoRows = '';
     if (diagnostic?.items && diagnostic.items.length > 0) {
       diagnostic.items.forEach((item, idx) => {
-        const severityLabel = item.severity === 'urgent' ? '⚠️ URGENTE' :
-                             item.severity === 'recommended' ? '📋 RECOMENDADO' :
-                             '✓ OK';
+        // Badge con semáforo para hallazgos y recomendaciones
+        const severityEmoji = item.severity === 'urgent' ? '🔴' :
+                             item.severity === 'recommended' ? '🟡' :
+                             '🟢';
+        const severityLabel = item.severity === 'urgent' ? 'URGENTE' :
+                             item.severity === 'recommended' ? 'RECOMENDADO' :
+                             'BIEN';
         const severityColor = item.severity === 'urgent' ? '#dc2626' :
                              item.severity === 'recommended' ? '#f59e0b' :
                              '#10b981';
@@ -102,9 +114,9 @@ export class PdfGeneratorService {
           <tr>
             <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${idx + 1}</td>
             <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">
+              <span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} ${severityLabel}</span><br>
               <strong>${item.item}</strong> (${item.category})<br>
-              <span style="font-size: 9px;">${item.description}</span><br>
-              <span style="color: ${severityColor}; font-weight: bold; font-size: 9px;">${severityLabel}</span>
+              <span style="font-size: 9px;">${item.description}</span>
             </td>
             <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(item.estimatedCost || 0).toFixed(2)}</td>
           </tr>
