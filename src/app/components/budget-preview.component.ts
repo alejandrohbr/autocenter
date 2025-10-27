@@ -149,9 +149,12 @@ export class BudgetPreviewComponent implements OnInit {
     private sanitizer: DomSanitizer
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     this.customerEmail = this.customer.email || '';
     this.customerPhone = this.customer.telefono || '';
+
+    // Esperar a que los logos se carguen
+    await this.pdfGenerator.ensureLogosLoaded();
 
     const html = this.pdfGenerator.generateDiagnosticBudgetHTML(this.order, this.customer);
     this.previewHTML = this.sanitizer.bypassSecurityTrustHtml(html);
@@ -168,8 +171,8 @@ export class BudgetPreviewComponent implements OnInit {
     }
   }
 
-  onPrint() {
-    this.pdfGenerator.printDiagnosticBudget(this.order, this.customer);
+  async onPrint() {
+    await this.pdfGenerator.printDiagnosticBudget(this.order, this.customer);
   }
 
   onSendEmail() {

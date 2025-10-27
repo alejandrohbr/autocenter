@@ -9,7 +9,88 @@ import html2canvas from 'html2canvas';
   providedIn: 'root'
 })
 export class PdfGeneratorService {
-  constructor() {}
+  private logoAutoCenter: string = '';
+  private logoSears: string = '';
+  private logosLoaded = false;
+
+  constructor() {
+    this.loadLogos();
+  }
+
+  private async loadLogos(): Promise<void> {
+    try {
+      // Cargar logo Auto Center
+      const autoCenterBase64 = await this.imageToBase64('/assets/AUTOCENTER.jpg');
+      this.logoAutoCenter = autoCenterBase64;
+
+      // Cargar logo Sears
+      const searsBase64 = await this.imageToBase64('/assets/searsicono.png');
+      this.logoSears = searsBase64;
+
+      this.logosLoaded = true;
+    } catch (error) {
+      console.error('Error cargando logos:', error);
+      this.logosLoaded = true; // Continuar aunque fallen
+    }
+  }
+
+  private imageToBase64(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            const dataURL = canvas.toDataURL('image/png');
+            resolve(dataURL);
+          } else {
+            reject(new Error('No se pudo obtener el contexto del canvas'));
+          }
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      img.onerror = () => {
+        reject(new Error(`No se pudo cargar la imagen: ${url}`));
+      };
+
+      img.src = url;
+    });
+  }
+
+  private waitForLogos(): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.logosLoaded) {
+        resolve();
+        return;
+      }
+
+      const checkInterval = setInterval(() => {
+        if (this.logosLoaded) {
+          clearInterval(checkInterval);
+          resolve();
+        }
+      }, 100);
+
+      // Timeout después de 5 segundos
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        resolve();
+      }, 5000);
+    });
+  }
+
+  public async ensureLogosLoaded(): Promise<void> {
+    await this.waitForLogos();
+  }
 
   generateDiagnosticBudgetHTML(order: Order, customer: Customer): string {
     const today = new Date().toLocaleDateString('es-MX');
@@ -227,14 +308,14 @@ export class PdfGeneratorService {
       <body>
         <div class="header">
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 15px;">
-            <img src="/assets/searsicono.png" alt="Sears" style="height: 50px; width: auto;">
+            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 50px; width: auto; object-fit: contain;">` : '<div style="width: 50px;"></div>'}
             <div style="flex: 1; text-align: center;">
-              <img src="/assets/AUTOCENTER.jpg" alt="Auto Center" style="height: 50px; width: auto; margin-bottom: 5px;">
+              ${this.logoAutoCenter ? `<img src="${this.logoAutoCenter}" alt="Auto Center" style="height: 50px; width: auto; margin-bottom: 5px; object-fit: contain;">` : ''}
               <h1>AUTO CENTER</h1>
               <h2>Manejamos Confianza</h2>
               ${order.tienda ? `<h2 style="margin-top: 5px; font-weight: bold;">${order.tienda}</h2>` : ''}
             </div>
-            <img src="/assets/searsicono.png" alt="Sears" style="height: 50px; width: auto;">
+            ${this.logoSears ? `<img src="${this.logoSears}" alt="Sears" style="height: 50px; width: auto; object-fit: contain;">` : '<div style="width: 50px;"></div>'}
           </div>
         </div>
 
@@ -401,7 +482,8 @@ export class PdfGeneratorService {
     `;
   }
 
-  printDiagnosticBudget(order: Order, customer: Customer): void {
+  async printDiagnosticBudget(order: Order, customer: Customer): Promise<void> {
+    await this.waitForLogos();
     const html = this.generateDiagnosticBudgetHTML(order, customer);
     const printWindow = window.open('', '_blank');
 
@@ -417,6 +499,7 @@ export class PdfGeneratorService {
 
   async downloadDiagnosticBudgetPDF(order: Order, customer: Customer): Promise<void> {
     try {
+      await this.waitForLogos();
       const element = document.createElement('div');
       element.innerHTML = this.generateDiagnosticBudgetHTML(order, customer);
       element.style.width = '210mm';
