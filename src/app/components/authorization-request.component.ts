@@ -1,9 +1,26 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DiagnosticItem } from '../models/diagnostic.model';
-import { DiagnosticItemAuthorization } from '../models/order.model';
+import { DiagnosticItemAuthorization, Product, Service } from '../models/order.model';
 import { getSeverityLabel, getSeverityBadgeColor } from '../models/diagnostic.model';
+
+// Interface unificada para mostrar items de autorización
+interface AuthorizationItem {
+  id: string;
+  type: 'product' | 'service' | 'diagnostic';
+  item: string;
+  description: string;
+  category: string;
+  estimatedCost: number;
+  severity?: string;
+  isPreAuthorized: boolean;
+  isAuthorized?: boolean;
+  isRejected?: boolean;
+  rejectionReason?: string;
+  authorizationDate?: Date;
+  originalItem: any; // Referencia al item original
+}
 
 @Component({
   selector: 'app-authorization-request',
@@ -19,27 +36,36 @@ import { getSeverityLabel, getSeverityBadgeColor } from '../models/diagnostic.mo
 
       <div class="space-y-4">
         <div
-          *ngFor="let item of diagnosticItems; let i = index"
+          *ngFor="let item of allItems; let i = index"
           class="border rounded-lg p-4 hover:shadow-md transition-shadow"
         >
           <div class="flex items-start justify-between">
             <div class="flex-1">
               <div class="flex items-center gap-3 mb-2">
+                <!-- Badge de Pre-autorizada o Severidad -->
                 <span
+                  *ngIf="item.isPreAuthorized"
+                  class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300"
+                >
+                  🔵 PRE-AUTORIZADA
+                </span>
+                <span
+                  *ngIf="!item.isPreAuthorized && item.severity"
                   [class]="getSeverityClass(item.severity)"
                   class="px-3 py-1 rounded-full text-xs font-semibold"
                 >
-                  {{ getSeverityText(item.severity) }}
+                  {{ getSeverityEmoji(item.severity) }} {{ getSeverityText(item.severity) }}
                 </span>
                 <span class="text-sm text-gray-500 font-medium">{{ item.category }}</span>
               </div>
 
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ item.item }}</h3>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                <span *ngIf="item.type === 'product'" class="text-blue-600">[REFACCIÓN]</span>
+                <span *ngIf="item.type === 'service'" class="text-green-600">[MANO DE OBRA]</span>
+                <span *ngIf="item.type === 'diagnostic'" class="text-purple-600">[HALLAZGO]</span>
+                {{ item.item }}
+              </h3>
               <p class="text-gray-600 mb-3">{{ item.description }}</p>
-
-              <div *ngIf="item.notes" class="bg-gray-50 rounded p-3 mb-3">
-                <p class="text-sm text-gray-700"><strong>Notas:</strong> {{ item.notes }}</p>
-              </div>
 
               <div class="flex items-center justify-between">
                 <div class="text-xl font-bold text-gray-900">
@@ -135,12 +161,77 @@ import { getSeverityLabel, getSeverityBadgeColor } from '../models/diagnostic.mo
   `,
   styles: []
 })
-export class AuthorizationRequestComponent {
+export class AuthorizationRequestComponent implements OnInit {
   @Input() orderFolio: string = '';
   @Input() customerName: string = '';
   @Input() diagnosticItems: DiagnosticItem[] = [];
+  @Input() products: Product[] = [];
+  @Input() services: Service[] = [];
   @Output() authorizationSubmitted = new EventEmitter<DiagnosticItem[]>();
   @Output() cancelled = new EventEmitter<void>();
+
+  allItems: AuthorizationItem[] = [];
+
+  ngOnInit() {
+    this.buildUnifiedItemsList();
+  }
+
+  buildUnifiedItemsList() {
+    this.allItems = [];
+
+    // Agregar productos (refacciones)
+    this.products?.forEach((product, idx) => {
+      const isPreAuthorized = !product.fromDiagnostic;
+      this.allItems.push({
+        id: `product-${idx}`,
+        type: 'product',
+        item: product.descripcion,
+        description: `Cantidad: ${product.cantidad}`,
+        category: 'REFACCIÓN',
+        estimatedCost: product.precio * product.cantidad,
+        severity: product.diagnosticSeverity,
+        isPreAuthorized: isPreAuthorized,
+        isAuthorized: isPreAuthorized, // Pre-autorizadas están autorizadas por defecto
+        originalItem: product
+      });
+    });
+
+    // Agregar servicios (mano de obra)
+    this.services?.forEach((service, idx) => {
+      const isPreAuthorized = !service.fromDiagnostic;
+      this.allItems.push({
+        id: `service-${idx}`,
+        type: 'service',
+        item: service.nombre,
+        description: service.descripcion,
+        category: service.categoria,
+        estimatedCost: service.precio,
+        severity: service.diagnosticSeverity,
+        isPreAuthorized: isPreAuthorized,
+        isAuthorized: isPreAuthorized, // Pre-autorizadas están autorizadas por defecto
+        originalItem: service
+      });
+    });
+
+    // Agregar items del diagnóstico (hallazgos)
+    this.diagnosticItems?.forEach((item, idx) => {
+      this.allItems.push({
+        id: `diagnostic-${idx}`,
+        type: 'diagnostic',
+        item: item.item,
+        description: item.description,
+        category: item.category,
+        estimatedCost: item.estimatedCost || 0,
+        severity: item.severity,
+        isPreAuthorized: false,
+        isAuthorized: item.isAuthorized,
+        isRejected: item.isRejected,
+        rejectionReason: item.rejectionReason,
+        authorizationDate: item.authorizationDate,
+        originalItem: item
+      });
+    });
+  }
 
   getSeverityText(severity: string): string {
     return getSeverityLabel(severity as any);
@@ -150,7 +241,14 @@ export class AuthorizationRequestComponent {
     return getSeverityBadgeColor(severity as any);
   }
 
-  onAuthorizationChange(item: DiagnosticItem, isAuthorized: boolean) {
+  getSeverityEmoji(severity: string): string {
+    if (severity === 'urgent') return '🔴';
+    if (severity === 'recommended') return '🟡';
+    if (severity === 'good') return '🟢';
+    return '';
+  }
+
+  onAuthorizationChange(item: AuthorizationItem, isAuthorized: boolean) {
     if (isAuthorized) {
       if (item.isAuthorized) {
         item.isRejected = false;
@@ -166,17 +264,17 @@ export class AuthorizationRequestComponent {
   }
 
   getTotalEstimated(): number {
-    return this.diagnosticItems.reduce((sum, item) => sum + (item.estimatedCost || 0), 0);
+    return this.allItems.reduce((sum, item) => sum + (item.estimatedCost || 0), 0);
   }
 
   getTotalAuthorized(): number {
-    return this.diagnosticItems
+    return this.allItems
       .filter(item => item.isAuthorized)
       .reduce((sum, item) => sum + (item.estimatedCost || 0), 0);
   }
 
   getTotalRejected(): number {
-    return this.diagnosticItems
+    return this.allItems
       .filter(item => item.isRejected)
       .reduce((sum, item) => sum + (item.estimatedCost || 0), 0);
   }

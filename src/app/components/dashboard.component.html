@@ -2518,6 +2518,8 @@
         [orderFolio]="selectedOrder?.folio || ''"
         [customerName]="selectedOrder?.cliente || ''"
         [diagnosticItems]="selectedOrder?.diagnostic?.items || []"
+        [products]="selectedOrder?.productos || []"
+        [services]="selectedOrder?.servicios || []"
         (authorizationSubmitted)="onAuthorizationSubmitted($event)"
         (cancelled)="cancelAuthorization()"
       ></app-authorization-request>
