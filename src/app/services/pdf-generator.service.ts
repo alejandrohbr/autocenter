@@ -150,31 +150,45 @@ export class PdfGeneratorService {
       });
     }
 
-    // Si no hay diagnostic_authorizations, usar los items del diagnostic (retrocompatibilidad)
+    // Mostrar items del diagnostic que NO han sido enviados a autorización todavía
     let diagnosticoRows = '';
-    if (!order.diagnostic_authorizations && diagnostic?.items && diagnostic.items.length > 0) {
-      diagnostic.items.forEach((item, idx) => {
-        const severityEmoji = item.severity === 'urgent' ? '🔴' :
-                             item.severity === 'recommended' ? '🟡' :
-                             '🟢';
-        const severityLabel = item.severity === 'urgent' ? 'URGENTE' :
-                             item.severity === 'recommended' ? 'RECOMENDADO' :
-                             'BIEN';
-        const severityColor = item.severity === 'urgent' ? '#dc2626' :
-                             item.severity === 'recommended' ? '#f59e0b' :
-                             '#10b981';
+    if (diagnostic?.items && diagnostic.items.length > 0) {
+      // Obtener IDs de items que ya fueron enviados a autorización
+      const authorizedItemIds = new Set(
+        order.diagnostic_authorizations?.map(auth => auth.diagnostic_item_id) || []
+      );
 
-        diagnosticoRows += `
-          <tr>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${idx + 1}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">
-              <span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} ${severityLabel}</span><br>
-              <strong>${item.item}</strong> (${item.category})<br>
-              <span style="font-size: 9px;">${item.description}</span>
-            </td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(item.estimatedCost || 0).toFixed(2)}</td>
-          </tr>
-        `;
+      // Calcular cuántos items pendientes ya hay en pendingAuthsRows
+      const pendingAuthsCount = order.diagnostic_authorizations
+        ?.filter(auth => auth.is_authorized === null || auth.is_authorized === false).length || 0;
+      let itemIdx = pendingAuthsCount + 1;
+
+      diagnostic.items.forEach((item) => {
+        // Solo mostrar si NO ha sido enviado a autorización
+        if (!authorizedItemIds.has(item.id || '')) {
+          const severityEmoji = item.severity === 'urgent' ? '🔴' :
+                               item.severity === 'recommended' ? '🟡' :
+                               '🟢';
+          const severityLabel = item.severity === 'urgent' ? 'URGENTE' :
+                               item.severity === 'recommended' ? 'RECOMENDADO' :
+                               'BIEN';
+          const severityColor = item.severity === 'urgent' ? '#dc2626' :
+                               item.severity === 'recommended' ? '#f59e0b' :
+                               '#10b981';
+
+          diagnosticoRows += `
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${itemIdx}</td>
+              <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">
+                <span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} ${severityLabel}</span><br>
+                <strong>${item.item}</strong> (${item.category})<br>
+                <span style="font-size: 9px;">${item.description}</span>
+              </td>
+              <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(item.estimatedCost || 0).toFixed(2)}</td>
+            </tr>
+          `;
+          itemIdx++;
+        }
       });
     }
 
@@ -191,10 +205,15 @@ export class PdfGeneratorService {
       ?.filter(auth => auth.is_authorized === null || auth.is_authorized === false)
       .reduce((sum, auth) => sum + (auth.estimated_cost || 0), 0) || 0;
 
-    // Para retrocompatibilidad con diagnostic.items
-    const subtotalDiagnostico = diagnostic?.items?.reduce((sum, item) => sum + (item.estimatedCost || 0), 0) || 0;
+    // Calcular subtotal de items del diagnostic que NO han sido enviados a autorización
+    const authorizedItemIds = new Set(
+      order.diagnostic_authorizations?.map(auth => auth.diagnostic_item_id) || []
+    );
+    const subtotalDiagnostico = diagnostic?.items
+      ?.filter(item => !authorizedItemIds.has(item.id || ''))
+      .reduce((sum, item) => sum + (item.estimatedCost || 0), 0) || 0;
 
-    const total = subtotalProductos + subtotalServicios + subtotalAuthorizedAuths + subtotalDiagnostico;
+    const total = subtotalProductos + subtotalServicios + subtotalAuthorizedAuths;
 
     return `
       <!DOCTYPE html>
@@ -472,7 +491,7 @@ export class PdfGeneratorService {
               </tr>
             </thead>
             <tbody>
-              ${pendingAuthsRows || diagnosticoRows}
+              ${pendingAuthsRows}${diagnosticoRows}
             </tbody>
           </table>
         ` : ''}
