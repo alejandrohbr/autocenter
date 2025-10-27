@@ -248,6 +248,40 @@ import {
         </div>
       </div>
 
+      <div *ngIf="getProcessedItems().length > 0" class="mt-6 pt-6 border-t border-gray-300">
+        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Items Ya Procesados ({{ getProcessedItems().length }})
+        </h4>
+        <div class="space-y-2">
+          <div
+            *ngFor="let item of getProcessedItems()"
+            class="p-3 rounded-lg border-2 bg-gray-50 border-gray-200 opacity-60"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-lg">{{ getCategoryIcon(item.category) }}</span>
+                  <span class="font-medium text-sm line-through text-gray-600">{{ item.item }}</span>
+                  <span *ngIf="item.isAuthorized" class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    ✓ Autorizado
+                  </span>
+                  <span *ngIf="item.isRejected" class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    ✗ Rechazado
+                  </span>
+                </div>
+                <p class="text-sm text-gray-600 ml-7">{{ item.description }}</p>
+                <p *ngIf="item.isRejected && item.rejectionReason" class="text-xs text-red-600 ml-7 mt-1">
+                  Razón: {{ item.rejectionReason }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div *ngIf="diagnostic.completedAt" class="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
         Diagnóstico completado el {{ diagnostic.completedAt | date:'medium' }}
       </div>
@@ -272,12 +306,30 @@ export class DiagnosticDisplayComponent {
 
   getItemCountBySeverity(severity: DiagnosticSeverity): number {
     if (!this.diagnostic) return 0;
-    return this.diagnostic.items.filter(item => item.severity === severity).length;
+    // Contar solo items que NO hayan sido autorizados o rechazados
+    return this.diagnostic.items.filter(item =>
+      item.severity === severity &&
+      !item.isAuthorized &&
+      !item.isRejected
+    ).length;
   }
 
   getItemsBySeverity(severity: DiagnosticSeverity): DiagnosticItem[] {
     if (!this.diagnostic) return [];
-    return this.diagnostic.items.filter(item => item.severity === severity);
+    // Filtrar solo items que NO hayan sido autorizados o rechazados
+    return this.diagnostic.items.filter(item =>
+      item.severity === severity &&
+      !item.isAuthorized &&
+      !item.isRejected
+    );
+  }
+
+  getProcessedItems(): DiagnosticItem[] {
+    if (!this.diagnostic) return [];
+    // Retornar items que YA fueron autorizados o rechazados
+    return this.diagnostic.items.filter(item =>
+      item.isAuthorized || item.isRejected
+    );
   }
 
   getSeverityColor(severity: DiagnosticSeverity): string {

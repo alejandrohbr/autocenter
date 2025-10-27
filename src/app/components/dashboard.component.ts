@@ -1331,14 +1331,44 @@ export class DashboardComponent implements OnInit {
       console.log('Items rechazados:', rejectedItems);
       console.log('Orden seleccionada:', this.selectedOrder);
 
+      // Guardar ventas perdidas
       if (rejectedItems.length > 0) {
         console.log('Guardando ventas perdidas...');
         await this.customerService.saveLostSales(this.selectedOrder, rejectedItems);
         console.log('Ventas perdidas guardadas exitosamente');
       }
 
+      // Guardar autorizaciones
       await this.customerService.saveAuthorizationItems(this.selectedOrder.id, items);
 
+      // Actualizar el diagnostic del pedido para marcar items como procesados
+      if (this.selectedOrder.diagnostic && this.selectedOrder.diagnostic.items) {
+        this.selectedOrder.diagnostic.items.forEach(diagnosticItem => {
+          const processedItem = items.find(item =>
+            item.type === 'diagnostic' && item.originalItem.id === diagnosticItem.id
+          );
+          if (processedItem) {
+            diagnosticItem.isAuthorized = processedItem.isAuthorized;
+            diagnosticItem.isRejected = processedItem.isRejected;
+            diagnosticItem.rejectionReason = processedItem.rejectionReason;
+            diagnosticItem.authorizationDate = new Date();
+          }
+        });
+
+        // Actualizar el diagnostic en la base de datos
+        const { error } = await this.customerService.client
+          .from('orders')
+          .update({
+            diagnostic: this.selectedOrder.diagnostic
+          })
+          .eq('id', this.selectedOrder.id);
+
+        if (error) {
+          console.error('Error actualizando diagnostic:', error);
+        }
+      }
+
+      // Crear productos autorizados
       const newProductos = authorizedItems.map(item => ({
         descripcion: item.item,
         cantidad: 1,
