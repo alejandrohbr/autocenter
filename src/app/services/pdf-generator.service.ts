@@ -403,7 +403,7 @@ export class PdfGeneratorService {
             <!-- Nombre del AutoCenter en el centro -->
             <div style="text-align: center; flex: 1; padding: 0 30px;">
               ${order.tienda ? `<h1 style="font-size: 28px; color: #1e40af; margin: 0; font-weight: 700; letter-spacing: 1px;">${order.tienda}</h1>` : ''}
-              <p style="font-size: 13px; color: #6b7280; margin: 5px 0 0 0; font-weight: 500;">Satélite Taller Mecánico</p>
+              
             </div>
 
             <!-- Logo AutoCenter a la derecha -->
@@ -436,7 +436,7 @@ export class PdfGeneratorService {
               <span>${customer.ciudad || 'N/A'}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Tienda:</span>
+              <span class="info-label">Centro Automoriz:</span>
               <span>${order.tienda}</span>
             </div>
             <div class="info-item">
@@ -538,7 +538,7 @@ export class PdfGeneratorService {
               <tr>
                 <th style="width: 30px; text-align: center;">#</th>
                 <th>HALLAZGO Y RECOMENDACIÓN</th>
-                <th style="width: 100px; text-align: right;">COSTO ESTIMADO</th>
+                <th style="width: 100px; text-align: right;">IMPORTE TOTAL</th>
               </tr>
             </thead>
             <tbody>
@@ -567,7 +567,7 @@ export class PdfGeneratorService {
             </div>
           ` : ''}
           <div class="total-final">
-            <span>COSTO TOTAL:</span>
+            <span>IMPORTE TOTAL:</span>
             <span>$${total.toFixed(2)}</span>
           </div>
         </div>
