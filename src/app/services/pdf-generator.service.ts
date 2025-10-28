@@ -33,12 +33,20 @@ export class PdfGeneratorService {
     const diagnostic = order.diagnostic;
     const vehicleInfo = diagnostic?.vehicleInfo || {};
 
-    let productosRows = '';
+    // Separar refacciones autorizadas de recomendadas
+    let productosAutorizadosRows = '';
+    let productosRecomendadosRows = '';
     if (order.productos && order.productos.length > 0) {
-      order.productos.forEach((producto, idx) => {
+      let autorizadosIdx = 1;
+      let recomendadosIdx = 1;
+
+      order.productos.forEach((producto) => {
         let badge = '';
+        let isRecommended = false;
+
         if (producto.fromDiagnostic && producto.diagnosticSeverity) {
-          // Badge para refacciones del diagnóstico con semáforo
+          // Refacción recomendada del diagnóstico (NO incluir en total)
+          isRecommended = true;
           const severityEmoji = producto.diagnosticSeverity === 'urgent' ? '🔴' :
                                producto.diagnosticSeverity === 'recommended' ? '🟡' :
                                '🟢';
@@ -47,19 +55,35 @@ export class PdfGeneratorService {
                                '#10b981';
           badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} RECOMENDADO</span><br>`;
         } else {
-          // Badge para refacciones pre-autorizadas (manuales)
+          // Refacción pre-autorizada (SÍ incluir en total)
           badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 PRE-AUTORIZADA</span><br>`;
         }
 
-        productosRows += `
-          <tr>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${idx + 1}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${badge}${producto.descripcion}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${producto.cantidad}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${producto.precio.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(producto.precio * producto.cantidad).toFixed(2)}</td>
-          </tr>
-        `;
+        if (isRecommended) {
+          // Agregar a refacciones recomendadas
+          productosRecomendadosRows += `
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${recomendadosIdx}</td>
+              <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${badge}${producto.descripcion}</td>
+              <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${producto.cantidad}</td>
+              <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${producto.precio.toFixed(2)}</td>
+              <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(producto.precio * producto.cantidad).toFixed(2)}</td>
+            </tr>
+          `;
+          recomendadosIdx++;
+        } else {
+          // Agregar a refacciones autorizadas
+          productosAutorizadosRows += `
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${autorizadosIdx}</td>
+              <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${badge}${producto.descripcion}</td>
+              <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${producto.cantidad}</td>
+              <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${producto.precio.toFixed(2)}</td>
+              <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(producto.precio * producto.cantidad).toFixed(2)}</td>
+            </tr>
+          `;
+          autorizadosIdx++;
+        }
       });
     }
 
@@ -192,7 +216,16 @@ export class PdfGeneratorService {
       });
     }
 
-    const subtotalProductos = order.productos?.reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
+    // Calcular subtotal solo de refacciones autorizadas (NO recomendadas)
+    const subtotalProductos = order.productos
+      ?.filter(p => !(p.fromDiagnostic && p.diagnosticSeverity))
+      .reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
+
+    // Calcular subtotal de refacciones recomendadas (NO incluir en total)
+    const subtotalProductosRecomendados = order.productos
+      ?.filter(p => p.fromDiagnostic && p.diagnosticSeverity)
+      .reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
+
     const subtotalServicios = order.servicios?.reduce((sum, s) => sum + s.precio, 0) || 0;
 
     // Calcular subtotal de autorizaciones autorizadas
@@ -444,8 +477,8 @@ export class PdfGeneratorService {
           </div>
         </div>
 
-        ${productosRows ? `
-          <div class="section-title">✓ Refacciones Solicitadas</div>
+        ${productosAutorizadosRows ? `
+          <div class="section-title">✓ Refacciones Autorizadas</div>
           <table>
             <thead>
               <tr>
@@ -457,7 +490,7 @@ export class PdfGeneratorService {
               </tr>
             </thead>
             <tbody>
-              ${productosRows}
+              ${productosAutorizadosRows}
             </tbody>
           </table>
         ` : ''}
@@ -476,6 +509,24 @@ export class PdfGeneratorService {
             </thead>
             <tbody>
               ${serviciosRows || ''}${authorizedAuthsRows || ''}
+            </tbody>
+          </table>
+        ` : ''}
+
+        ${productosRecomendadosRows ? `
+          <div class="section-title">📦 Refacciones Recomendadas</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30px; text-align: center;">#</th>
+                <th>DESCRIPCIÓN</th>
+                <th style="width: 50px; text-align: center;">CANT.</th>
+                <th style="width: 80px; text-align: right;">PRECIO UNIT.</th>
+                <th style="width: 80px; text-align: right;">IMPORTE TOTAL</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${productosRecomendadosRows}
             </tbody>
           </table>
         ` : ''}
@@ -499,7 +550,7 @@ export class PdfGeneratorService {
         <div class="totals-box">
           ${subtotalProductos > 0 ? `
             <div class="total-row">
-              <span>Subtotal Refacciones:</span>
+              <span>Subtotal Refacciones Autorizadas:</span>
               <span>$${subtotalProductos.toFixed(2)}</span>
             </div>
           ` : ''}
@@ -509,10 +560,10 @@ export class PdfGeneratorService {
               <span>$${(subtotalServicios + subtotalAuthorizedAuths).toFixed(2)}</span>
             </div>
           ` : ''}
-          ${(subtotalDiagnostico > 0 || subtotalPendingAuths > 0) ? `
+          ${(subtotalProductosRecomendados > 0 || subtotalDiagnostico > 0 || subtotalPendingAuths > 0) ? `
             <div class="total-row" style="color: #666; font-style: italic; font-size: 10px;">
-              <span>Hallazgos y Recomendaciones (No incluidos en el total):</span>
-              <span>$${(subtotalDiagnostico + subtotalPendingAuths).toFixed(2)}</span>
+              <span>Refacciones, Hallazgos y Recomendaciones (No incluidos en el total):</span>
+              <span>$${(subtotalProductosRecomendados + subtotalDiagnostico + subtotalPendingAuths).toFixed(2)}</span>
             </div>
           ` : ''}
           <div class="total-final">
