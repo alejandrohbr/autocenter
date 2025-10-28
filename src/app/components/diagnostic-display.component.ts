@@ -140,28 +140,6 @@ import {
                       En Autorización
                     </span>
                   </div>
-                  <div *ngIf="showActions && !isItemSentToAuthorization(item)" class="flex gap-2">
-                    <button
-                      (click)="onAuthorizeItem(item)"
-                      class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                      title="Autorizar servicio"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                      Autorizar
-                    </button>
-                    <button
-                      (click)="onRejectItem(item)"
-                      class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                      title="Rechazar servicio"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                      Rechazar
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -216,28 +194,6 @@ import {
                       </svg>
                       En Autorización
                     </span>
-                  </div>
-                  <div *ngIf="showActions && !isItemSentToAuthorization(item)" class="flex gap-2">
-                    <button
-                      (click)="onAuthorizeItem(item)"
-                      class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                      title="Autorizar servicio"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                      Autorizar
-                    </button>
-                    <button
-                      (click)="onRejectItem(item)"
-                      class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                      title="Rechazar servicio"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                      Rechazar
-                    </button>
                   </div>
                 </div>
               </div>
@@ -294,28 +250,6 @@ import {
                       En Autorización
                     </span>
                   </div>
-                  <div *ngIf="showActions && !isItemSentToAuthorization(item)" class="flex gap-2">
-                    <button
-                      (click)="onAuthorizeItem(item)"
-                      class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                      title="Autorizar servicio"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                      Autorizar
-                    </button>
-                    <button
-                      (click)="onRejectItem(item)"
-                      class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors flex items-center gap-1"
-                      title="Rechazar servicio"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                      Rechazar
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -365,20 +299,9 @@ import {
 })
 export class DiagnosticDisplayComponent {
   @Input() diagnostic: VehicleDiagnostic | undefined;
-  @Input() showActions: boolean = false; // Mostrar botones de autorizar/rechazar
   @Input() diagnosticAuthorizations: any[] = []; // Items ya enviados a autorización
-  @Output() itemAuthorized = new EventEmitter<DiagnosticItem>();
-  @Output() itemRejected = new EventEmitter<DiagnosticItem>();
 
   categories = DIAGNOSTIC_CATEGORIES;
-
-  onAuthorizeItem(item: DiagnosticItem) {
-    this.itemAuthorized.emit(item);
-  }
-
-  onRejectItem(item: DiagnosticItem) {
-    this.itemRejected.emit(item);
-  }
 
   getItemCountBySeverity(severity: DiagnosticSeverity): number {
     if (!this.diagnostic) return 0;
