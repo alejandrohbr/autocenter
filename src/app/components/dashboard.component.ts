@@ -1559,12 +1559,22 @@ export class DashboardComponent implements OnInit {
 
   getAuthorizedProducts(order: Order): Product[] {
     if (!order.productos) return [];
-    return order.productos.filter(p => !p.isRejected && !(p.fromDiagnostic && p.diagnosticSeverity));
+    // Incluir productos pre-autorizados Y productos del diagnóstico que fueron autorizados
+    return order.productos.filter(p => {
+      if (p.isRejected) return false;
+      // Incluir: 1) pre-autorizados (sin fromDiagnostic) 2) del diagnóstico que fueron autorizados
+      return !p.fromDiagnostic || (p.fromDiagnostic && p.isAuthorized);
+    });
   }
 
   getAuthorizedDiagnosticItems(order: Order): DiagnosticItemAuthorization[] {
     if (!order.diagnostic_authorizations) return [];
-    return order.diagnostic_authorizations.filter(auth => auth.is_authorized && !auth.is_rejected);
+    // SOLO items de mano de obra/servicio autorizados (NO refacciones, esas están en productos)
+    return order.diagnostic_authorizations.filter(auth =>
+      auth.is_authorized &&
+      !auth.is_rejected &&
+      auth.category === 'service' // Solo mano de obra
+    );
   }
 
   calculateAuthorizedProductsTotal(order: Order): number {
@@ -1572,7 +1582,11 @@ export class DashboardComponent implements OnInit {
   }
 
   calculateServicesTotal(order: Order): number {
-    return order.servicios?.reduce((sum, s) => sum + s.precio, 0) || 0;
+    // Incluir servicios pre-autorizados Y servicios del diagnóstico que fueron autorizados
+    return order.servicios?.filter(s => {
+      if (s.isRejected) return false;
+      return !s.fromDiagnostic || (s.fromDiagnostic && s.isAuthorized);
+    }).reduce((sum, s) => sum + s.precio, 0) || 0;
   }
 
   calculateAuthorizedDiagnosticTotal(order: Order): number {

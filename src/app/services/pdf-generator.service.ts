@@ -264,17 +264,28 @@ export class PdfGeneratorService {
       });
     }
 
-    // Calcular subtotal solo de refacciones autorizadas (NO recomendadas, NO rechazadas)
+    // Calcular subtotal solo de refacciones autorizadas (incluye pre-autorizadas y autorizadas del diagnóstico)
     const subtotalProductos = order.productos
-      ?.filter(p => !p.isRejected && !(p.fromDiagnostic && p.diagnosticSeverity))
+      ?.filter(p => {
+        if (p.isRejected) return false; // Excluir rechazadas
+        // Incluir: 1) pre-autorizadas (sin fromDiagnostic) 2) del diagnóstico que fueron autorizadas
+        return !p.fromDiagnostic || (p.fromDiagnostic && p.isAuthorized);
+      })
       .reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
 
-    // Calcular subtotal de refacciones recomendadas (NO incluir en total, NO rechazadas)
+    // Calcular subtotal de refacciones recomendadas (solo las pendientes, NO rechazadas)
     const subtotalProductosRecomendados = order.productos
-      ?.filter(p => !p.isRejected && p.fromDiagnostic && p.diagnosticSeverity)
+      ?.filter(p => !p.isRejected && p.fromDiagnostic && p.diagnosticSeverity && !p.isAuthorized)
       .reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
 
-    const subtotalServicios = order.servicios?.reduce((sum, s) => sum + s.precio, 0) || 0;
+    // Calcular subtotal de servicios autorizados (incluye pre-autorizados y autorizados del diagnóstico)
+    const subtotalServicios = order.servicios
+      ?.filter(s => {
+        if (s.isRejected) return false; // Excluir rechazados
+        // Incluir: 1) pre-autorizados (sin fromDiagnostic) 2) del diagnóstico que fueron autorizados
+        return !s.fromDiagnostic || (s.fromDiagnostic && s.isAuthorized);
+      })
+      .reduce((sum, s) => sum + s.precio, 0) || 0;
 
     // Calcular subtotal de autorizaciones autorizadas
     const subtotalAuthorizedAuths = order.diagnostic_authorizations
