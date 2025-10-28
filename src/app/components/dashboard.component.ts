@@ -11,7 +11,7 @@ import { XmlUploadComponent } from './xml-upload.component';
 import { ProductClassificationComponent } from './product-classification.component';
 import { LostSalesReportComponent } from './lost-sales-report.component';
 import { BudgetPreviewComponent } from './budget-preview.component';
-import { Order, Product, Service, VehicleDiagnostic, OrderInvoice, XmlProduct, ProductosPorProveedor } from '../models/order.model';
+import { Order, Product, Service, VehicleDiagnostic, OrderInvoice, XmlProduct, ProductosPorProveedor, DiagnosticItemAuthorization } from '../models/order.model';
 import { Customer, Vehicle } from '../models/customer.model';
 import { DiagnosticSeverity } from '../models/diagnostic.model';
 import { CustomerService } from '../services/customer.service';
@@ -60,7 +60,7 @@ export class DashboardComponent implements OnInit {
   selectedOrderVehicle: Vehicle | null = null;
   isEditingDiagnostic = false;
   editingDiagnosticData: VehicleDiagnostic | null = null;
-  detailActiveTab: 'info' | 'products' | 'services' | 'diagnostic' | 'xml-products' = 'info';
+  detailActiveTab: 'info' | 'products' | 'services' | 'summary' | 'diagnostic' | 'xml-products' = 'info';
   isEditingProducts = false;
   isEditingServices = false;
   editingProducts: Product[] = [];
@@ -1497,6 +1497,34 @@ export class DashboardComponent implements OnInit {
     const serviciosTotal = order.servicios?.reduce((sum, s) => sum + s.precio, 0) || 0;
     const authorizedTotal = this.getAuthorizedServices(order).reduce((sum, auth) => sum + auth.estimated_cost, 0);
     return serviciosTotal + authorizedTotal;
+  }
+
+  getAuthorizedProducts(order: Order): Product[] {
+    if (!order.productos) return [];
+    return order.productos.filter(p => !p.isRejected && !(p.fromDiagnostic && p.diagnosticSeverity));
+  }
+
+  getAuthorizedDiagnosticItems(order: Order): DiagnosticItemAuthorization[] {
+    if (!order.diagnostic_authorizations) return [];
+    return order.diagnostic_authorizations.filter(auth => auth.is_authorized && !auth.is_rejected);
+  }
+
+  calculateAuthorizedProductsTotal(order: Order): number {
+    return this.getAuthorizedProducts(order).reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
+  }
+
+  calculateServicesTotal(order: Order): number {
+    return order.servicios?.reduce((sum, s) => sum + s.precio, 0) || 0;
+  }
+
+  calculateAuthorizedDiagnosticTotal(order: Order): number {
+    return this.getAuthorizedDiagnosticItems(order).reduce((sum, auth) => sum + (auth.estimated_cost || 0), 0);
+  }
+
+  calculateTotalAuthorized(order: Order): number {
+    return this.calculateAuthorizedProductsTotal(order) +
+           this.calculateServicesTotal(order) +
+           this.calculateAuthorizedDiagnosticTotal(order);
   }
 
   closeLostSalesReport() {

@@ -258,73 +258,6 @@ export class PdfGeneratorService {
 
     const total = subtotalProductos + subtotalServicios + subtotalAuthorizedAuths;
 
-    // Construir resumen de servicios autorizados
-    let resumenAutorizadosHTML = '';
-    if (total > 0) {
-      let resumenRows = '';
-      let resumenIdx = 1;
-
-      // Agregar refacciones pre-autorizadas
-      order.productos?.filter(p => !p.isRejected && !(p.fromDiagnostic && p.diagnosticSeverity)).forEach((producto) => {
-        resumenRows += `
-          <tr>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${resumenIdx}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;"><strong>[REFACCIÓN]</strong> ${producto.descripcion}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${producto.cantidad}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${producto.precio.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(producto.precio * producto.cantidad).toFixed(2)}</td>
-          </tr>
-        `;
-        resumenIdx++;
-      });
-
-      // Agregar servicios pre-autorizados
-      order.servicios?.forEach((servicio) => {
-        resumenRows += `
-          <tr>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${resumenIdx}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;"><strong>[MANO DE OBRA]</strong> ${servicio.nombre}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">1</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${servicio.precio.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${servicio.precio.toFixed(2)}</td>
-          </tr>
-        `;
-        resumenIdx++;
-      });
-
-      // Agregar hallazgos autorizados
-      order.diagnostic_authorizations?.filter(auth => auth.is_authorized).forEach((auth) => {
-        resumenRows += `
-          <tr>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${resumenIdx}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;"><strong>[HALLAZGO]</strong> ${auth.item_name}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">1</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(auth.estimated_cost || 0).toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(auth.estimated_cost || 0).toFixed(2)}</td>
-          </tr>
-        `;
-        resumenIdx++;
-      });
-
-      resumenAutorizadosHTML = `
-        <div class="section-title" style="background: #10b981; margin-top: 15px;">✅ RESUMEN DE SERVICIOS AUTORIZADOS</div>
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 30px; text-align: center;">#</th>
-              <th>DESCRIPCIÓN</th>
-              <th style="width: 50px; text-align: center;">CANT.</th>
-              <th style="width: 80px; text-align: right;">PRECIO UNIT.</th>
-              <th style="width: 80px; text-align: right;">IMPORTE TOTAL</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${resumenRows}
-          </tbody>
-        </table>
-      `;
-    }
-
     return `
       <!DOCTYPE html>
       <html>
@@ -623,8 +556,6 @@ export class PdfGeneratorService {
             </tbody>
           </table>
         ` : ''}
-
-        ${resumenAutorizadosHTML}
 
         <div class="totals-box">
           ${subtotalProductos > 0 ? `
