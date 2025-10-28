@@ -51,19 +51,38 @@ export class PdfGeneratorService {
 
         let badge = '';
         let isRecommended = false;
+        let isPartAuthorized = false;
 
-        if (producto.fromDiagnostic && producto.diagnosticSeverity) {
-          // Refacción recomendada del diagnóstico (NO incluir en total)
-          isRecommended = true;
-          const severityEmoji = producto.diagnosticSeverity === 'urgent' ? '🔴' :
-                               producto.diagnosticSeverity === 'recommended' ? '🟡' :
-                               '🟢';
-          const severityColor = producto.diagnosticSeverity === 'urgent' ? '#dc2626' :
-                               producto.diagnosticSeverity === 'recommended' ? '#f59e0b' :
-                               '#10b981';
-          badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} RECOMENDADO</span><br>`;
+        // Si la refacción es del diagnóstico, verificar si fue autorizada por el cliente
+        if (producto.fromDiagnostic && producto.diagnosticSeverity && producto.descripcion) {
+          // Buscar si hay una autorización para esta refacción (basado en el nombre/descripción)
+          const auth = order.diagnostic_authorizations?.find(a =>
+            a.category === 'part' &&
+            a.item_name &&
+            producto.descripcion &&
+            a.item_name.toLowerCase().includes(producto.descripcion.toLowerCase().substring(0, 8))
+          );
+
+          if (auth && auth.is_authorized === true) {
+            // La refacción fue AUTORIZADA por el cliente
+            isPartAuthorized = true;
+            badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 AUTORIZADA</span><br>`;
+          } else if (auth && auth.is_authorized === false) {
+            // La refacción fue RECHAZADA - no mostrarla
+            return;
+          } else {
+            // La refacción sigue como RECOMENDADA (pendiente de autorización)
+            isRecommended = true;
+            const severityEmoji = producto.diagnosticSeverity === 'urgent' ? '🔴' :
+                                 producto.diagnosticSeverity === 'recommended' ? '🟡' :
+                                 '🟢';
+            const severityColor = producto.diagnosticSeverity === 'urgent' ? '#dc2626' :
+                                 producto.diagnosticSeverity === 'recommended' ? '#f59e0b' :
+                                 '#10b981';
+            badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} RECOMENDADO</span><br>`;
+          }
         } else {
-          // Refacción pre-autorizada o autorizada (SÍ incluir en total)
+          // Refacción pre-autorizada o autorizada manual (SÍ incluir en total)
           const statusText = isAuthorized ? 'AUTORIZADA' : 'PRE-AUTORIZADA';
           badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 ${statusText}</span><br>`;
         }
@@ -162,7 +181,8 @@ export class PdfGeneratorService {
 
         if (auth.is_authorized) {
           // Formato de mano de obra para autorizados (con cantidad, precio, importe)
-          const badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} RECOMENDADO</span><br>`;
+          // Badge AUTORIZADA en azul
+          const badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 AUTORIZADA</span><br>`;
 
           authorizedAuthsRows += `
             <tr>

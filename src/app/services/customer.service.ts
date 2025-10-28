@@ -309,6 +309,20 @@ export class CustomerService {
       .eq('id', orderId);
   }
 
+  async getAuthorizationsByOrderId(orderId: string): Promise<any[]> {
+    const { data, error } = await this.supabase.client
+      .from('diagnostic_items_authorization')
+      .select('*')
+      .eq('order_id', orderId);
+
+    if (error) {
+      console.error('Error obteniendo autorizaciones:', error);
+      throw error;
+    }
+
+    return data || [];
+  }
+
   async saveInvoice(orderId: string, invoice: any): Promise<void> {
     const invoiceData = {
       order_id: orderId,

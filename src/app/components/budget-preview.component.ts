@@ -5,6 +5,7 @@ import { Order } from '../models/order.model';
 import { Customer } from '../models/customer.model';
 import { PdfGeneratorService } from '../services/pdf-generator.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { CustomerService } from '../services/customer.service';
 
 @Component({
   selector: 'app-budget-preview',
@@ -146,12 +147,23 @@ export class BudgetPreviewComponent implements OnInit {
 
   constructor(
     private pdfGenerator: PdfGeneratorService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private customerService: CustomerService
   ) {}
 
   async ngOnInit() {
     this.customerEmail = this.customer.email || '';
     this.customerPhone = this.customer.telefono || '';
+
+    // Cargar autorizaciones si el pedido tiene diagnóstico
+    if (this.order.id && this.order.diagnostic) {
+      try {
+        const authorizations = await this.customerService.getAuthorizationsByOrderId(this.order.id);
+        this.order.diagnostic_authorizations = authorizations;
+      } catch (error) {
+        console.error('Error cargando autorizaciones:', error);
+      }
+    }
 
     // Esperar a que los logos se carguen
     await this.pdfGenerator.ensureLogosLoaded();
