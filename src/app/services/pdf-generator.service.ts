@@ -33,6 +33,9 @@ export class PdfGeneratorService {
     const diagnostic = order.diagnostic;
     const vehicleInfo = diagnostic?.vehicleInfo || {};
 
+    // Determinar si el presupuesto está autorizado
+    const isAuthorized = order.estado === 'Autorizado';
+
     // Separar refacciones autorizadas de recomendadas
     let productosAutorizadosRows = '';
     let productosRecomendadosRows = '';
@@ -60,8 +63,9 @@ export class PdfGeneratorService {
                                '#10b981';
           badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} RECOMENDADO</span><br>`;
         } else {
-          // Refacción pre-autorizada (SÍ incluir en total)
-          badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 PRE-AUTORIZADA</span><br>`;
+          // Refacción pre-autorizada o autorizada (SÍ incluir en total)
+          const statusText = isAuthorized ? 'AUTORIZADA' : 'PRE-AUTORIZADA';
+          badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 ${statusText}</span><br>`;
         }
 
         if (isRecommended) {
@@ -106,8 +110,9 @@ export class PdfGeneratorService {
                                '#10b981';
           badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} RECOMENDADO</span><br>`;
         } else {
-          // Badge para servicios pre-autorizados (manuales)
-          badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 PRE-AUTORIZADA</span><br>`;
+          // Badge para servicios pre-autorizados o autorizados (manuales)
+          const statusText = isAuthorized ? 'AUTORIZADA' : 'PRE-AUTORIZADA';
+          badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 ${statusText}</span><br>`;
         }
 
         serviciosRows += `
@@ -523,7 +528,7 @@ export class PdfGeneratorService {
           </table>
         ` : ''}
 
-        ${productosRecomendadosRows ? `
+        ${!isAuthorized && productosRecomendadosRows ? `
           <div class="section-title">📦 Refacciones Recomendadas</div>
           <table>
             <thead>
@@ -541,7 +546,7 @@ export class PdfGeneratorService {
           </table>
         ` : ''}
 
-        ${(pendingAuthsRows || diagnosticoRows) ? `
+        ${!isAuthorized && (pendingAuthsRows || diagnosticoRows) ? `
           <div class="section-title">🔍 Hallazgos y Recomendaciones</div>
           <table>
             <thead>
@@ -570,7 +575,7 @@ export class PdfGeneratorService {
               <span>$${(subtotalServicios + subtotalAuthorizedAuths).toFixed(2)}</span>
             </div>
           ` : ''}
-          ${(subtotalProductosRecomendados > 0 || subtotalDiagnostico > 0 || subtotalPendingAuths > 0) ? `
+          ${!isAuthorized && (subtotalProductosRecomendados > 0 || subtotalDiagnostico > 0 || subtotalPendingAuths > 0) ? `
             <div class="total-row" style="color: #666; font-style: italic; font-size: 10px;">
               <span>Refacciones, Hallazgos y Recomendaciones (No incluidos en el total):</span>
               <span>$${(subtotalProductosRecomendados + subtotalDiagnostico + subtotalPendingAuths).toFixed(2)}</span>
