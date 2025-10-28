@@ -41,6 +41,11 @@ export class PdfGeneratorService {
       let recomendadosIdx = 1;
 
       order.productos.forEach((producto) => {
+        // Filtrar refacciones rechazadas - no mostrarlas en el presupuesto
+        if (producto.isRejected) {
+          return; // Skip refacciones rechazadas
+        }
+
         let badge = '';
         let isRecommended = false;
 
@@ -129,6 +134,11 @@ export class PdfGeneratorService {
       let pendingIdx = 1;
 
       order.diagnostic_authorizations.forEach((auth) => {
+        // Filtrar hallazgos rechazados - no mostrarlos en el presupuesto
+        if (auth.is_rejected) {
+          return; // Skip hallazgos rechazados
+        }
+
         const severityEmoji = auth.severity === 'urgent' ? '🔴' :
                              auth.severity === 'recommended' ? '🟡' :
                              '🟢';
@@ -216,14 +226,14 @@ export class PdfGeneratorService {
       });
     }
 
-    // Calcular subtotal solo de refacciones autorizadas (NO recomendadas)
+    // Calcular subtotal solo de refacciones autorizadas (NO recomendadas, NO rechazadas)
     const subtotalProductos = order.productos
-      ?.filter(p => !(p.fromDiagnostic && p.diagnosticSeverity))
+      ?.filter(p => !p.isRejected && !(p.fromDiagnostic && p.diagnosticSeverity))
       .reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
 
-    // Calcular subtotal de refacciones recomendadas (NO incluir en total)
+    // Calcular subtotal de refacciones recomendadas (NO incluir en total, NO rechazadas)
     const subtotalProductosRecomendados = order.productos
-      ?.filter(p => p.fromDiagnostic && p.diagnosticSeverity)
+      ?.filter(p => !p.isRejected && p.fromDiagnostic && p.diagnosticSeverity)
       .reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
 
     const subtotalServicios = order.servicios?.reduce((sum, s) => sum + s.precio, 0) || 0;
@@ -233,9 +243,9 @@ export class PdfGeneratorService {
       ?.filter(auth => auth.is_authorized)
       .reduce((sum, auth) => sum + (auth.estimated_cost || 0), 0) || 0;
 
-    // Calcular subtotal de servicios sugeridos (pendientes/rechazados)
+    // Calcular subtotal de servicios sugeridos (solo pendientes, NO rechazados)
     const subtotalPendingAuths = order.diagnostic_authorizations
-      ?.filter(auth => auth.is_authorized === null || auth.is_authorized === false)
+      ?.filter(auth => !auth.is_rejected && auth.is_authorized === null)
       .reduce((sum, auth) => sum + (auth.estimated_cost || 0), 0) || 0;
 
     // Calcular subtotal de items del diagnostic que NO han sido enviados a autorización
@@ -247,6 +257,73 @@ export class PdfGeneratorService {
       .reduce((sum, item) => sum + (item.estimatedCost || 0), 0) || 0;
 
     const total = subtotalProductos + subtotalServicios + subtotalAuthorizedAuths;
+
+    // Construir resumen de servicios autorizados
+    let resumenAutorizadosHTML = '';
+    if (total > 0) {
+      let resumenRows = '';
+      let resumenIdx = 1;
+
+      // Agregar refacciones pre-autorizadas
+      order.productos?.filter(p => !p.isRejected && !(p.fromDiagnostic && p.diagnosticSeverity)).forEach((producto) => {
+        resumenRows += `
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${resumenIdx}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;"><strong>[REFACCIÓN]</strong> ${producto.descripcion}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${producto.cantidad}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${producto.precio.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(producto.precio * producto.cantidad).toFixed(2)}</td>
+          </tr>
+        `;
+        resumenIdx++;
+      });
+
+      // Agregar servicios pre-autorizados
+      order.servicios?.forEach((servicio) => {
+        resumenRows += `
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${resumenIdx}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;"><strong>[MANO DE OBRA]</strong> ${servicio.nombre}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">1</td>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${servicio.precio.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${servicio.precio.toFixed(2)}</td>
+          </tr>
+        `;
+        resumenIdx++;
+      });
+
+      // Agregar hallazgos autorizados
+      order.diagnostic_authorizations?.filter(auth => auth.is_authorized).forEach((auth) => {
+        resumenRows += `
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">${resumenIdx}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;"><strong>[HALLAZGO]</strong> ${auth.item_name}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 10px;">1</td>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(auth.estimated_cost || 0).toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">$${(auth.estimated_cost || 0).toFixed(2)}</td>
+          </tr>
+        `;
+        resumenIdx++;
+      });
+
+      resumenAutorizadosHTML = `
+        <div class="section-title" style="background: #10b981; margin-top: 15px;">✅ RESUMEN DE SERVICIOS AUTORIZADOS</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 30px; text-align: center;">#</th>
+              <th>DESCRIPCIÓN</th>
+              <th style="width: 50px; text-align: center;">CANT.</th>
+              <th style="width: 80px; text-align: right;">PRECIO UNIT.</th>
+              <th style="width: 80px; text-align: right;">IMPORTE TOTAL</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${resumenRows}
+          </tbody>
+        </table>
+      `;
+    }
 
     return `
       <!DOCTYPE html>
@@ -546,6 +623,8 @@ export class PdfGeneratorService {
             </tbody>
           </table>
         ` : ''}
+
+        ${resumenAutorizadosHTML}
 
         <div class="totals-box">
           ${subtotalProductos > 0 ? `

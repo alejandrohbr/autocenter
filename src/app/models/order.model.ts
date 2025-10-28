@@ -26,6 +26,7 @@ export interface Product {
   isProcessed?: boolean;
   fromDiagnostic?: boolean;
   diagnosticSeverity?: DiagnosticSeverity;
+  isRejected?: boolean;
 }
 
 export interface Service {
@@ -48,6 +49,7 @@ export interface DiagnosticItemAuthorization {
   severity: DiagnosticSeverity;
   estimated_cost: number;
   is_authorized: boolean;
+  is_rejected?: boolean;
   authorization_date?: Date;
   rejection_reason?: string;
   notes?: string;
