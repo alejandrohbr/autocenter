@@ -1484,6 +1484,7 @@
         [customerId]="selectedCustomer?.id || ''"
         [hideVehicleSelection]="true"
         [currentUserName]="user?.full_name"
+        [selectedMarginPercentage]="selectedPaymentType ? parseInt(selectedPaymentType) : 30"
         (diagnosticChange)="onDiagnosticChange($event)"
         (vehicleSelected)="onVehicleSelected($event)"
         (cancelled)="closeDiagnosticModal()">
@@ -2229,6 +2230,7 @@
             [initialDiagnostic]="editingDiagnosticData || undefined"
             [hideVehicleSelection]="true"
             [currentUserName]="user?.full_name"
+            [selectedMarginPercentage]="selectedPaymentTypeEdit ? parseInt(selectedPaymentTypeEdit) : 30"
             (diagnosticCompleted)="saveDiagnosticEdit($event)"
             (cancelled)="cancelEditingDiagnostic()"
           ></app-vehicle-diagnostic>

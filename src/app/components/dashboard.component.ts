@@ -37,6 +37,7 @@ import { PreOcValidationComponent } from './pre-oc-validation.component';
 })
 export class DashboardComponent implements OnInit {
   user: User | null = null;
+  parseInt = parseInt;
 
   activeView: 'dashboard' | 'new-order' | 'customer-search' | 'authorization' | 'invoice-upload' | 'lost-sales-report' | 'admin-validation' | 'pre-oc-validation' | 'not-found-products' = 'dashboard';
   pendingValidationOrders: Order[] = [];

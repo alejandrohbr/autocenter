@@ -478,6 +478,7 @@ export class VehicleDiagnosticComponent implements OnInit {
   @Input() customerId: string = '';
   @Input() hideVehicleSelection: boolean = false;
   @Input() currentUserName?: string;
+  @Input() selectedMarginPercentage: number = 30;
   @Output() diagnosticChange = new EventEmitter<VehicleDiagnostic>();
   @Output() diagnosticCompleted = new EventEmitter<VehicleDiagnostic>();
   @Output() vehicleSelected = new EventEmitter<any>();
@@ -662,8 +663,9 @@ export class VehicleDiagnosticComponent implements OnInit {
       // Costo con IVA
       const costoConIva = costo * 1.16;
 
-      // Precio de venta público (margen del 30% sobre costo con IVA)
-      const precio = costoConIva * 1.30;
+      // Precio de venta público (usar margen seleccionado del dashboard)
+      const marginMultiplier = 1 + (this.selectedMarginPercentage / 100);
+      const precio = costoConIva * marginMultiplier;
 
       // Margen
       const margen = precio - costoConIva;
