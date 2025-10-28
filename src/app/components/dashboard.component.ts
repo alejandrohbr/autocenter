@@ -955,7 +955,6 @@ export class DashboardComponent implements OnInit {
 
     if (!this.selectedCustomer) missingFields.push('Cliente');
     if (!this.newOrder.tienda) missingFields.push('Tienda');
-    if (!this.newOrder.division) missingFields.push('División');
     if (this.newOrder.productos.length === 0 && (!this.newOrder.servicios || this.newOrder.servicios.length === 0)) {
       missingFields.push('Productos o Servicios');
     }
