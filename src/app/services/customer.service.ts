@@ -303,7 +303,8 @@ export class CustomerService {
         authorization_status: 'completed',
         authorization_completed_at: new Date().toISOString(),
         total_authorized_amount: totalAuthorized,
-        total_rejected_amount: totalRejected
+        total_rejected_amount: totalRejected,
+        estado: 'Autorizado'  // Cambiar el estado a Autorizado para que el PDF muestre badges correctos
       })
       .eq('id', orderId);
   }
