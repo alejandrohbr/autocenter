@@ -253,19 +253,32 @@ export class CustomerService {
   }
 
   async saveAuthorizationItems(orderId: string, items: any[]): Promise<void> {
-    const authItems = items.map(item => ({
-      order_id: orderId,
-      diagnostic_item_id: item.id,
-      item_name: item.item,
-      category: item.category,
-      description: item.description,
-      severity: item.severity,
-      estimated_cost: item.estimatedCost || 0,
-      is_authorized: item.isAuthorized || false,
-      authorization_date: item.authorizationDate || new Date(),
-      rejection_reason: item.rejectionReason || null,
-      notes: item.notes || null
-    }));
+    const authItems = items.map(item => {
+      // Determinar el valor de is_authorized:
+      // - true si isAuthorized === true
+      // - false si isRejected === true (explícitamente rechazado)
+      // - null si ninguno (pendiente)
+      let isAuthorizedValue: boolean | null = null;
+      if (item.isAuthorized) {
+        isAuthorizedValue = true;
+      } else if (item.isRejected) {
+        isAuthorizedValue = false;
+      }
+
+      return {
+        order_id: orderId,
+        diagnostic_item_id: item.id,
+        item_name: item.item,
+        category: item.category,
+        description: item.description,
+        severity: item.severity,
+        estimated_cost: item.estimatedCost || 0,
+        is_authorized: isAuthorizedValue,
+        authorization_date: item.authorizationDate || new Date(),
+        rejection_reason: item.rejectionReason || null,
+        notes: item.notes || null
+      };
+    });
 
     const { error } = await this.supabase.client
       .from('diagnostic_items_authorization')

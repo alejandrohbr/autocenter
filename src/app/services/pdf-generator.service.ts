@@ -139,9 +139,15 @@ export class PdfGeneratorService {
       let pendingIdx = 1;
 
       order.diagnostic_authorizations.forEach((auth) => {
-        // Filtrar hallazgos rechazados - no mostrarlos en el presupuesto
-        if (auth.is_rejected) {
-          return; // Skip hallazgos rechazados
+        // Si el presupuesto está autorizado, solo mostrar items autorizados
+        // Si está pre-autorizado, mostrar autorizados y pendientes (no rechazados)
+        if (isAuthorized && !auth.is_authorized) {
+          return; // En presupuestos autorizados, skip items no autorizados
+        }
+
+        // Filtrar hallazgos rechazados - is_authorized === false significa rechazado
+        if (!isAuthorized && auth.is_authorized === false) {
+          return; // Skip hallazgos rechazados en pre-autorizados
         }
 
         const severityEmoji = auth.severity === 'urgent' ? '🔴' :
@@ -248,9 +254,9 @@ export class PdfGeneratorService {
       ?.filter(auth => auth.is_authorized)
       .reduce((sum, auth) => sum + (auth.estimated_cost || 0), 0) || 0;
 
-    // Calcular subtotal de servicios sugeridos (solo pendientes, NO rechazados)
+    // Calcular subtotal de servicios sugeridos (solo pendientes null, NO rechazados false)
     const subtotalPendingAuths = order.diagnostic_authorizations
-      ?.filter(auth => !auth.is_rejected && auth.is_authorized === null)
+      ?.filter(auth => auth.is_authorized === null)
       .reduce((sum, auth) => sum + (auth.estimated_cost || 0), 0) || 0;
 
     // Calcular subtotal de items del diagnostic que NO han sido enviados a autorización Y NO están rechazados
