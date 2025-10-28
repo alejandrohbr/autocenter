@@ -54,22 +54,12 @@ export class PdfGeneratorService {
         let isPartAuthorized = false;
 
         // Si la refacción es del diagnóstico, verificar si fue autorizada por el cliente
-        if (producto.fromDiagnostic && producto.diagnosticSeverity && producto.descripcion) {
-          // Buscar si hay una autorización para esta refacción (basado en el nombre/descripción)
-          const auth = order.diagnostic_authorizations?.find(a =>
-            a.category === 'part' &&
-            a.item_name &&
-            producto.descripcion &&
-            a.item_name.toLowerCase().includes(producto.descripcion.toLowerCase().substring(0, 8))
-          );
-
-          if (auth && auth.is_authorized === true) {
+        if (producto.fromDiagnostic && producto.diagnosticSeverity) {
+          // Usar directamente el campo isAuthorized del producto
+          if (producto.isAuthorized) {
             // La refacción fue AUTORIZADA por el cliente
             isPartAuthorized = true;
-            badge = `<span style="color: #1e40af; font-weight: bold; font-size: 9px; display: inline-block; background: #dbeafe; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #3b82f6;">🔵 AUTORIZADA</span><br>`;
-          } else if (auth && auth.is_authorized === false) {
-            // La refacción fue RECHAZADA - no mostrarla
-            return;
+            badge = `<span style="color: #16a34a; font-weight: bold; font-size: 9px; display: inline-block; background: #dcfce7; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #22c55e;">✓ AUTORIZADA</span><br>`;
           } else {
             // La refacción sigue como RECOMENDADA (pendiente de autorización)
             isRecommended = true;
@@ -118,16 +108,27 @@ export class PdfGeneratorService {
     let serviciosRows = '';
     if (order.servicios && order.servicios.length > 0) {
       order.servicios.forEach((servicio, idx) => {
+        // Filtrar servicios rechazados
+        if (servicio.isRejected) {
+          return;
+        }
+
         let badge = '';
         if (servicio.fromDiagnostic && servicio.diagnosticSeverity) {
-          // Badge para servicios del diagnóstico con semáforo
-          const severityEmoji = servicio.diagnosticSeverity === 'urgent' ? '🔴' :
-                               servicio.diagnosticSeverity === 'recommended' ? '🟡' :
-                               '🟢';
-          const severityColor = servicio.diagnosticSeverity === 'urgent' ? '#dc2626' :
-                               servicio.diagnosticSeverity === 'recommended' ? '#f59e0b' :
-                               '#10b981';
-          badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} RECOMENDADO</span><br>`;
+          // Verificar si fue autorizado usando el campo isAuthorized
+          if (servicio.isAuthorized) {
+            // Servicio autorizado del diagnóstico
+            badge = `<span style="color: #16a34a; font-weight: bold; font-size: 9px; display: inline-block; background: #dcfce7; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #22c55e;">✓ AUTORIZADA</span><br>`;
+          } else {
+            // Badge para servicios del diagnóstico pendientes con semáforo
+            const severityEmoji = servicio.diagnosticSeverity === 'urgent' ? '🔴' :
+                                 servicio.diagnosticSeverity === 'recommended' ? '🟡' :
+                                 '🟢';
+            const severityColor = servicio.diagnosticSeverity === 'urgent' ? '#dc2626' :
+                                 servicio.diagnosticSeverity === 'recommended' ? '#f59e0b' :
+                                 '#10b981';
+            badge = `<span style="color: ${severityColor}; font-weight: bold; font-size: 9px; display: inline-block; background: ${severityColor}22; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; border: 1px solid ${severityColor};">${severityEmoji} RECOMENDADO</span><br>`;
+          }
         } else {
           // Badge para servicios pre-autorizados o autorizados (manuales)
           const statusText = isAuthorized ? 'AUTORIZADA' : 'PRE-AUTORIZADA';

@@ -1429,6 +1429,19 @@ export class DashboardComponent implements OnInit {
         }
       }
 
+      // Actualizar el estado del pedido a "Autorizado"
+      const { error: statusError } = await this.customerService.client
+        .from('orders')
+        .update({
+          status: 'Autorizado',
+          estado: 'Autorizado'
+        })
+        .eq('id', this.selectedOrder.id);
+
+      if (statusError) {
+        console.error('Error actualizando estado del pedido:', statusError);
+      }
+
       const message = `Autorización guardada exitosamente.\n\n` +
         `✓ ${authorizedItems.length} servicios autorizados (Total: $${totalAutorizado.toFixed(2)})\n` +
         `✗ ${rejectedItems.length} servicios NO autorizados (Total: $${totalRechazado.toFixed(2)})\n\n` +
