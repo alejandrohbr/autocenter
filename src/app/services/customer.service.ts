@@ -253,7 +253,16 @@ export class CustomerService {
   }
 
   async saveAuthorizationItems(orderId: string, items: any[]): Promise<void> {
-    const authItems = items.map(item => {
+    // SOLO guardar items de diagnóstico (type='diagnostic')
+    // Los productos y servicios ya se guardan directamente con isAuthorized/isRejected
+    const diagnosticItems = items.filter(item => item.type === 'diagnostic');
+
+    if (diagnosticItems.length === 0) {
+      console.log('No hay items de diagnóstico para guardar en diagnostic_items_authorization');
+      return;
+    }
+
+    const authItems = diagnosticItems.map(item => {
       // Determinar el valor de is_authorized:
       // - true si isAuthorized === true
       // - false si isRejected === true (explícitamente rechazado)
