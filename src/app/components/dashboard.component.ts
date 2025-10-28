@@ -1569,11 +1569,10 @@ export class DashboardComponent implements OnInit {
 
   getAuthorizedDiagnosticItems(order: Order): DiagnosticItemAuthorization[] {
     if (!order.diagnostic_authorizations) return [];
-    // SOLO items de mano de obra/servicio autorizados (NO refacciones, esas están en productos)
+    // Devolver TODOS los items autorizados del diagnóstico
+    // (ya solo guardamos mano de obra en esta tabla, las refacciones van directo a productos)
     return order.diagnostic_authorizations.filter(auth =>
-      auth.is_authorized &&
-      !auth.is_rejected &&
-      auth.category === 'service' // Solo mano de obra
+      auth.is_authorized && !auth.is_rejected
     );
   }
 
