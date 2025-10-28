@@ -247,16 +247,27 @@ import {
         </div>
 
         <!-- Sección para agregar refacciones relacionadas -->
-        <div *ngIf="diagnostic.items.length > 0" class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-          <h4 class="text-sm font-medium text-orange-900 mb-3 flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-            </svg>
-            Agregar Refacciones para el Servicio
-          </h4>
+        <div *ngIf="selectedServiceForParts" class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-medium text-orange-900 flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+              </svg>
+              Agregar Refacciones para el Servicio
+            </h4>
+            <button
+              type="button"
+              (click)="selectedServiceForParts = null"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
 
-          <div class="mb-3 text-sm text-orange-800">
-            <p>Relacionadas con: <strong>{{ diagnostic.items.length > 0 ? diagnostic.items[diagnostic.items.length - 1].item : '' }}</strong></p>
+          <div class="mb-3 p-2 bg-white border border-orange-300 rounded text-sm text-orange-800">
+            <p><strong>Servicio seleccionado:</strong> {{ selectedServiceForParts.item }}</p>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
@@ -321,33 +332,6 @@ import {
           >
             Agregar Refacción
           </button>
-
-          <!-- Lista de refacciones agregadas -->
-          <div *ngIf="diagnostic.parts && diagnostic.parts.length > 0" class="mt-4 space-y-2">
-            <h5 class="text-sm font-medium text-gray-900">Refacciones agregadas ({{ diagnostic.parts.length }})</h5>
-            <div *ngFor="let part of diagnostic.parts; let i = index" class="bg-white border border-gray-200 rounded p-3">
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <div class="flex items-center gap-2">
-                    <span [class]="'inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ' + getSeverityBadgeColor(part.severity)">
-                      {{ getSeverityIcon(part.severity) }} {{ getSeverityLabel(part.severity) }}
-                    </span>
-                    <span class="font-medium text-gray-900">{{ part.descripcion }}</span>
-                  </div>
-                  <p class="text-xs text-gray-500 mt-1">Cantidad: {{ part.cantidad }} | Costo: {{ part.costo }} | Precio: {{ part.precio }}</p>
-                </div>
-                <button
-                  type="button"
-                  (click)="removeDiagnosticPart(i)"
-                  class="text-red-600 hover:text-red-800"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div *ngIf="diagnostic.items.length > 0" class="space-y-3">
@@ -397,6 +381,39 @@ import {
                   </div>
                   <p class="text-sm text-gray-700 ml-7">{{ item.description }}</p>
                   <p class="text-xs text-gray-500 ml-7 mt-1">Categoría: {{ getCategoryName(item.category) }}</p>
+
+                  <!-- Botón y refacciones relacionadas -->
+                  <div class="ml-7 mt-3">
+                    <button
+                      type="button"
+                      (click)="selectServiceForParts(item)"
+                      class="text-xs px-3 py-1 bg-orange-100 hover:bg-orange-200 text-orange-800 rounded-md font-medium transition-colors"
+                    >
+                      + Agregar Refacciones
+                    </button>
+
+                    <!-- Lista de refacciones relacionadas con este servicio -->
+                    <div *ngIf="getServiceParts(item.id).length > 0" class="mt-2 space-y-1">
+                      <p class="text-xs font-medium text-gray-700">Refacciones ({{ getServiceParts(item.id).length }}):</p>
+                      <div *ngFor="let part of getServiceParts(item.id); let pi = index" class="bg-white border border-gray-200 rounded p-2 text-xs">
+                        <div class="flex items-center justify-between">
+                          <div class="flex-1">
+                            <span class="font-medium text-gray-900">{{ part.descripcion }}</span>
+                            <span class="text-gray-500 ml-2">Cant: {{ part.cantidad }} | Costo: {{ part.costo | currency }} | Precio: {{ part.precio | currency }}</span>
+                          </div>
+                          <button
+                            type="button"
+                            (click)="removeDiagnosticPart(part.id)"
+                            class="text-red-600 hover:text-red-800 ml-2"
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -513,6 +530,7 @@ export class VehicleDiagnosticComponent implements OnInit {
   ];
 
   // Refacciones del diagnóstico
+  selectedServiceForParts: DiagnosticItem | null = null;
   newPart: Partial<DiagnosticPart> = {
     sku: '',
     descripcion: '',
@@ -693,11 +711,26 @@ export class VehicleDiagnosticComponent implements OnInit {
     );
   }
 
-  addDiagnosticPart() {
-    if (!this.canAddPart()) return;
+  selectServiceForParts(item: DiagnosticItem) {
+    this.selectedServiceForParts = item;
+    this.newPart = {
+      sku: '',
+      descripcion: '',
+      cantidad: 1,
+      costo: 0,
+      precio: 0,
+      margen: 0,
+      porcentaje: 0,
+    };
+  }
 
-    // Obtener la severidad del último servicio agregado
-    const lastItem = this.diagnostic.items[this.diagnostic.items.length - 1];
+  getServiceParts(serviceId: string): DiagnosticPart[] {
+    if (!this.diagnostic.parts) return [];
+    return this.diagnostic.parts.filter(part => part.relatedServiceId === serviceId);
+  }
+
+  addDiagnosticPart() {
+    if (!this.canAddPart() || !this.selectedServiceForParts) return;
 
     // Generar SKU automático si no se proporcionó
     const sku = this.newPart.sku || `DIAG-${Date.now()}`;
@@ -711,8 +744,8 @@ export class VehicleDiagnosticComponent implements OnInit {
       precio: this.newPart.precio!,
       margen: this.newPart.margen!,
       porcentaje: this.newPart.porcentaje!,
-      severity: lastItem.severity,
-      relatedServiceId: lastItem.id,
+      severity: this.selectedServiceForParts.severity,
+      relatedServiceId: this.selectedServiceForParts.id,
     };
 
     if (!this.diagnostic.parts) {
@@ -735,10 +768,13 @@ export class VehicleDiagnosticComponent implements OnInit {
     this.diagnosticChange.emit(this.diagnostic);
   }
 
-  removeDiagnosticPart(index: number) {
+  removeDiagnosticPart(partId: string) {
     if (this.diagnostic.parts) {
-      this.diagnostic.parts.splice(index, 1);
-      this.diagnosticChange.emit(this.diagnostic);
+      const index = this.diagnostic.parts.findIndex(p => p.id === partId);
+      if (index !== -1) {
+        this.diagnostic.parts.splice(index, 1);
+        this.diagnosticChange.emit(this.diagnostic);
+      }
     }
   }
 
