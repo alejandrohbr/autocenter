@@ -643,17 +643,6 @@ export class VehicleDiagnosticComponent implements OnInit {
 
     const itemName = this.newItem.item === 'custom' ? this.customItemName : this.newItem.item;
 
-    // PREVENIR DUPLICADOS: Verificar si ya existe un item con el mismo nombre y categoría
-    const isDuplicate = this.diagnostic.items.some(
-      item => item.item.toLowerCase() === itemName.toLowerCase() &&
-              item.category === this.newItem.category
-    );
-
-    if (isDuplicate) {
-      alert(`⚠️ Ya existe un item con el nombre "${itemName}" en la categoría "${this.newItem.category}". No se pueden agregar items duplicados.`);
-      return;
-    }
-
     const diagnosticItem: DiagnosticItem = {
       id: Date.now().toString(),
       category: this.newItem.category,

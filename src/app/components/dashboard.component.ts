@@ -1583,6 +1583,79 @@ export class DashboardComponent implements OnInit {
     this.editingDiagnosticData = null;
   }
 
+  async onAuthorizeDiagnosticItem(item: any) {
+    if (!this.selectedOrder || !this.selectedOrder.diagnostic) return;
+
+    // Agregar el servicio a mano de obra
+    if (!this.selectedOrder.servicios) {
+      this.selectedOrder.servicios = [];
+    }
+
+    const service: Service = {
+      sku: item.serviceSku || `DIAG-${Date.now()}`,
+      nombre: item.serviceName || item.item,
+      descripcion: item.description,
+      categoria: item.category,
+      precio: item.servicePrice || item.estimatedCost || 0,
+      fromDiagnostic: true,
+      diagnosticSeverity: item.severity
+    };
+
+    this.selectedOrder.servicios.push(service);
+
+    // Eliminar el item del diagnóstico
+    const itemIndex = this.selectedOrder.diagnostic.items.findIndex(i => i.id === item.id);
+    if (itemIndex !== -1) {
+      this.selectedOrder.diagnostic.items.splice(itemIndex, 1);
+    }
+
+    // Recalcular presupuesto
+    const totalProductos = this.selectedOrder.productos?.reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
+    const totalServicios = this.selectedOrder.servicios.reduce((sum, s) => sum + s.precio, 0);
+    this.selectedOrder.presupuesto = totalProductos + totalServicios;
+
+    // Guardar cambios
+    await this.updateOrderInDatabase(this.selectedOrder);
+  }
+
+  async onRejectDiagnosticItem(item: any) {
+    if (!this.selectedOrder || !this.selectedOrder.diagnostic) return;
+
+    // Eliminar el item del diagnóstico
+    const itemIndex = this.selectedOrder.diagnostic.items.findIndex(i => i.id === item.id);
+    if (itemIndex !== -1) {
+      this.selectedOrder.diagnostic.items.splice(itemIndex, 1);
+    }
+
+    // Eliminar las refacciones relacionadas con este servicio
+    if (this.selectedOrder.diagnostic.parts) {
+      this.selectedOrder.diagnostic.parts = this.selectedOrder.diagnostic.parts.filter(
+        part => part.relatedServiceId !== item.id
+      );
+    }
+
+    // Eliminar las refacciones de la orden (productos) que pertenezcan a este servicio
+    if (this.selectedOrder.productos) {
+      this.selectedOrder.productos = this.selectedOrder.productos.filter(producto => {
+        // Si el producto es del diagnóstico, verificar si es de este servicio
+        if (producto.fromDiagnostic && producto.diagnosticSeverity === item.severity) {
+          // Buscar en las partes del diagnóstico si alguna tenía este relatedServiceId
+          const wasRelated = !this.selectedOrder!.diagnostic!.parts ||
+            !this.selectedOrder!.diagnostic!.parts.some(p => p.relatedServiceId === item.id && p.descripcion === producto.descripcion);
+          return wasRelated;
+        }
+        return true; // Mantener productos que no son del diagnóstico
+      });
+    }
+
+    // Recalcular presupuesto
+    const totalProductos = this.selectedOrder.productos?.reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
+    const totalServicios = this.selectedOrder.servicios?.reduce((sum, s) => sum + s.precio, 0) || 0;
+    this.selectedOrder.presupuesto = totalProductos + totalServicios;
+
+    // Guardar cambios
+    await this.updateOrderInDatabase(this.selectedOrder);
+  }
 
   async onDiagnosticUpdated(diagnostic: VehicleDiagnostic) {
     if (!this.selectedOrder?.id) return;

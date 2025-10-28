@@ -2334,7 +2334,10 @@
         <div *ngIf="selectedOrder.diagnostic && !isEditingDiagnostic">
           <app-diagnostic-display
             [diagnostic]="selectedOrder.diagnostic"
+            [showActions]="true"
             [diagnosticAuthorizations]="selectedOrder.diagnostic_authorizations || []"
+            (itemAuthorized)="onAuthorizeDiagnosticItem($event)"
+            (itemRejected)="onRejectDiagnosticItem($event)"
           ></app-diagnostic-display>
         </div>
 
