@@ -1369,20 +1369,24 @@ export class DashboardComponent implements OnInit {
         }
       }
 
-      // Marcar productos (refacciones) como rechazados si fueron rechazados en el modal
+      // Marcar productos (refacciones) como autorizados o rechazados
       if (this.selectedOrder.productos) {
         items.forEach(item => {
-          if (item.type === 'product' && item.isRejected) {
-            const producto = this.selectedOrder!.productos.find(p =>
-              p.descripcion === item.item && p.fromDiagnostic
-            );
+          if (item.type === 'product') {
+            const producto = this.selectedOrder!.productos.find(p => p === item.originalItem);
             if (producto) {
-              producto.isRejected = true;
+              if (item.isAuthorized) {
+                producto.isAuthorized = true;
+                producto.isRejected = false;
+              } else if (item.isRejected) {
+                producto.isAuthorized = false;
+                producto.isRejected = true;
+              }
             }
           }
         });
 
-        // Actualizar productos en la base de datos con el flag isRejected
+        // Actualizar productos en la base de datos
         const { error: productosError } = await this.customerService.client
           .from('orders')
           .update({
@@ -1395,19 +1399,35 @@ export class DashboardComponent implements OnInit {
         }
       }
 
-      // Crear productos autorizados
-      const newProductos = authorizedItems.map(item => ({
-        descripcion: item.item,
-        cantidad: 1,
-        precio: item.estimatedCost || 0
-      }));
+      // Marcar servicios (mano de obra) como autorizados o rechazados
+      if (this.selectedOrder.servicios) {
+        items.forEach(item => {
+          if (item.type === 'service') {
+            const servicio = this.selectedOrder!.servicios!.find(s => s === item.originalItem);
+            if (servicio) {
+              if (item.isAuthorized) {
+                servicio.isAuthorized = true;
+                servicio.isRejected = false;
+              } else if (item.isRejected) {
+                servicio.isAuthorized = false;
+                servicio.isRejected = true;
+              }
+            }
+          }
+        });
 
-      await this.customerService.updateOrderAfterAuthorization(
-        this.selectedOrder.id,
-        newProductos,
-        totalAutorizado,
-        totalRechazado
-      );
+        // Actualizar servicios en la base de datos
+        const { error: serviciosError } = await this.customerService.client
+          .from('orders')
+          .update({
+            servicios: this.selectedOrder.servicios
+          })
+          .eq('id', this.selectedOrder.id);
+
+        if (serviciosError) {
+          console.error('Error actualizando servicios:', serviciosError);
+        }
+      }
 
       const message = `Autorización guardada exitosamente.\n\n` +
         `✓ ${authorizedItems.length} servicios autorizados (Total: $${totalAutorizado.toFixed(2)})\n` +
@@ -1583,79 +1603,6 @@ export class DashboardComponent implements OnInit {
     this.editingDiagnosticData = null;
   }
 
-  async onAuthorizeDiagnosticItem(item: any) {
-    if (!this.selectedOrder || !this.selectedOrder.diagnostic) return;
-
-    // Agregar el servicio a mano de obra
-    if (!this.selectedOrder.servicios) {
-      this.selectedOrder.servicios = [];
-    }
-
-    const service: Service = {
-      sku: item.serviceSku || `DIAG-${Date.now()}`,
-      nombre: item.serviceName || item.item,
-      descripcion: item.description,
-      categoria: item.category,
-      precio: item.servicePrice || item.estimatedCost || 0,
-      fromDiagnostic: true,
-      diagnosticSeverity: item.severity
-    };
-
-    this.selectedOrder.servicios.push(service);
-
-    // Eliminar el item del diagnóstico
-    const itemIndex = this.selectedOrder.diagnostic.items.findIndex(i => i.id === item.id);
-    if (itemIndex !== -1) {
-      this.selectedOrder.diagnostic.items.splice(itemIndex, 1);
-    }
-
-    // Recalcular presupuesto
-    const totalProductos = this.selectedOrder.productos?.reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
-    const totalServicios = this.selectedOrder.servicios.reduce((sum, s) => sum + s.precio, 0);
-    this.selectedOrder.presupuesto = totalProductos + totalServicios;
-
-    // Guardar cambios
-    await this.updateOrderInDatabase(this.selectedOrder);
-  }
-
-  async onRejectDiagnosticItem(item: any) {
-    if (!this.selectedOrder || !this.selectedOrder.diagnostic) return;
-
-    // Eliminar el item del diagnóstico
-    const itemIndex = this.selectedOrder.diagnostic.items.findIndex(i => i.id === item.id);
-    if (itemIndex !== -1) {
-      this.selectedOrder.diagnostic.items.splice(itemIndex, 1);
-    }
-
-    // Eliminar las refacciones relacionadas con este servicio
-    if (this.selectedOrder.diagnostic.parts) {
-      this.selectedOrder.diagnostic.parts = this.selectedOrder.diagnostic.parts.filter(
-        part => part.relatedServiceId !== item.id
-      );
-    }
-
-    // Eliminar las refacciones de la orden (productos) que pertenezcan a este servicio
-    if (this.selectedOrder.productos) {
-      this.selectedOrder.productos = this.selectedOrder.productos.filter(producto => {
-        // Si el producto es del diagnóstico, verificar si es de este servicio
-        if (producto.fromDiagnostic && producto.diagnosticSeverity === item.severity) {
-          // Buscar en las partes del diagnóstico si alguna tenía este relatedServiceId
-          const wasRelated = !this.selectedOrder!.diagnostic!.parts ||
-            !this.selectedOrder!.diagnostic!.parts.some(p => p.relatedServiceId === item.id && p.descripcion === producto.descripcion);
-          return wasRelated;
-        }
-        return true; // Mantener productos que no son del diagnóstico
-      });
-    }
-
-    // Recalcular presupuesto
-    const totalProductos = this.selectedOrder.productos?.reduce((sum, p) => sum + (p.precio * p.cantidad), 0) || 0;
-    const totalServicios = this.selectedOrder.servicios?.reduce((sum, s) => sum + s.precio, 0) || 0;
-    this.selectedOrder.presupuesto = totalProductos + totalServicios;
-
-    // Guardar cambios
-    await this.updateOrderInDatabase(this.selectedOrder);
-  }
 
   async onDiagnosticUpdated(diagnostic: VehicleDiagnostic) {
     if (!this.selectedOrder?.id) return;

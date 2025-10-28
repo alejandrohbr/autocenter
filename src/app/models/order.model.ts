@@ -26,6 +26,7 @@ export interface Product {
   isProcessed?: boolean;
   fromDiagnostic?: boolean;
   diagnosticSeverity?: DiagnosticSeverity;
+  isAuthorized?: boolean;
   isRejected?: boolean;
 }
 
@@ -37,6 +38,8 @@ export interface Service {
   precio: number;
   fromDiagnostic?: boolean;
   diagnosticSeverity?: DiagnosticSeverity;
+  isAuthorized?: boolean;
+  isRejected?: boolean;
 }
 
 export interface DiagnosticItemAuthorization {

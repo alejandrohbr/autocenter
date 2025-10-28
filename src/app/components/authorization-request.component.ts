@@ -280,7 +280,7 @@ export class AuthorizationRequestComponent implements OnInit {
   }
 
   onSubmit() {
-    const hasRejectedWithoutReason = this.diagnosticItems.some(
+    const hasRejectedWithoutReason = this.allItems.some(
       item => item.isRejected && !item.rejectionReason?.trim()
     );
 
@@ -289,7 +289,27 @@ export class AuthorizationRequestComponent implements OnInit {
       return;
     }
 
-    this.authorizationSubmitted.emit(this.diagnosticItems);
+    // Sincronizar cambios desde allItems hacia los items originales
+    this.allItems.forEach(item => {
+      if (item.type === 'diagnostic') {
+        const originalItem = item.originalItem as DiagnosticItem;
+        originalItem.isAuthorized = item.isAuthorized;
+        originalItem.isRejected = item.isRejected;
+        originalItem.rejectionReason = item.rejectionReason;
+        originalItem.authorizationDate = item.authorizationDate;
+      } else if (item.type === 'product') {
+        const originalItem = item.originalItem as Product;
+        originalItem.isAuthorized = item.isAuthorized;
+        originalItem.isRejected = item.isRejected;
+      } else if (item.type === 'service') {
+        const originalItem = item.originalItem as Service;
+        originalItem.isAuthorized = item.isAuthorized;
+        originalItem.isRejected = item.isRejected;
+      }
+    });
+
+    // Emitir TODOS los items con su tipo
+    this.authorizationSubmitted.emit(this.allItems as any);
   }
 
   onCancel() {

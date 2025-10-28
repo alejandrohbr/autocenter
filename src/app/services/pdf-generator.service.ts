@@ -158,6 +158,12 @@ export class PdfGeneratorService {
       let pendingIdx = 1;
 
       order.diagnostic_authorizations.forEach((auth) => {
+        // FILTRAR REFACCIONES - Las refacciones ya se muestran en la sección "Refacciones Autorizadas"
+        // Solo mostrar servicios/mano de obra aquí
+        if (auth.category === 'part') {
+          return; // Skip refacciones, ya están en "Refacciones Autorizadas"
+        }
+
         // Si el presupuesto está autorizado, solo mostrar items autorizados
         // Si está pre-autorizado, mostrar autorizados y pendientes (no rechazados)
         if (isAuthorized && !auth.is_authorized) {
