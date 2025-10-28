@@ -1401,7 +1401,10 @@ export class DashboardComponent implements OnInit {
 
   cancelAuthorization() {
     this.showAuthorizationModal = false;
+    this.showOrderDetail = false;
     this.selectedOrder = null;
+    this.selectedOrderCustomer = null;
+    this.selectedOrderVehicle = null;
   }
 
   openInvoiceUpload(order: Order) {
