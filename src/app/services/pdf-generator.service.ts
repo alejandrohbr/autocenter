@@ -198,8 +198,8 @@ export class PdfGeneratorService {
       let itemIdx = pendingAuthsCount + 1;
 
       diagnostic.items.forEach((item) => {
-        // Solo mostrar si NO ha sido enviado a autorización
-        if (!authorizedItemIds.has(item.id || '')) {
+        // Solo mostrar si NO ha sido enviado a autorización Y NO está rechazado
+        if (!authorizedItemIds.has(item.id || '') && !item.isRejected) {
           const severityEmoji = item.severity === 'urgent' ? '🔴' :
                                item.severity === 'recommended' ? '🟡' :
                                '🟢';
@@ -248,12 +248,12 @@ export class PdfGeneratorService {
       ?.filter(auth => !auth.is_rejected && auth.is_authorized === null)
       .reduce((sum, auth) => sum + (auth.estimated_cost || 0), 0) || 0;
 
-    // Calcular subtotal de items del diagnostic que NO han sido enviados a autorización
+    // Calcular subtotal de items del diagnostic que NO han sido enviados a autorización Y NO están rechazados
     const authorizedItemIds = new Set(
       order.diagnostic_authorizations?.map(auth => auth.diagnostic_item_id) || []
     );
     const subtotalDiagnostico = diagnostic?.items
-      ?.filter(item => !authorizedItemIds.has(item.id || ''))
+      ?.filter(item => !authorizedItemIds.has(item.id || '') && !item.isRejected)
       .reduce((sum, item) => sum + (item.estimatedCost || 0), 0) || 0;
 
     const total = subtotalProductos + subtotalServicios + subtotalAuthorizedAuths;

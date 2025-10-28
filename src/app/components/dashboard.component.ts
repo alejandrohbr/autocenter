@@ -1370,6 +1370,32 @@ export class DashboardComponent implements OnInit {
         }
       }
 
+      // Marcar productos (refacciones) como rechazados si fueron rechazados en el modal
+      if (this.selectedOrder.productos) {
+        items.forEach(item => {
+          if (item.type === 'product' && item.isRejected) {
+            const producto = this.selectedOrder!.productos.find(p =>
+              p.descripcion === item.item && p.fromDiagnostic
+            );
+            if (producto) {
+              producto.isRejected = true;
+            }
+          }
+        });
+
+        // Actualizar productos en la base de datos con el flag isRejected
+        const { error: productosError } = await this.customerService.client
+          .from('orders')
+          .update({
+            productos: this.selectedOrder.productos
+          })
+          .eq('id', this.selectedOrder.id);
+
+        if (productosError) {
+          console.error('Error actualizando productos:', productosError);
+        }
+      }
+
       // Crear productos autorizados
       const newProductos = authorizedItems.map(item => ({
         descripcion: item.item,
