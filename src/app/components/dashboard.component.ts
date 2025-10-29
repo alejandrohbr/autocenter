@@ -1958,6 +1958,37 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  canShowProcessProductsButton(order: Order | null): boolean {
+    if (!order) return false;
+
+    // Debe estar en estado "Productos Validados"
+    if (order.status !== 'Productos Validados') return false;
+
+    // Usuario debe tener permiso para avanzar
+    if (!this.auth.canAdvanceOrderStatus()) return false;
+
+    // Si es Gerente, Admin Corporativo o Super Admin, puede procesar siempre
+    if (this.auth.isGerente() || this.auth.isAdminCorporativo() || this.auth.isSuperAdmin()) {
+      return true;
+    }
+
+    // Para otros roles (Técnico, Asesor Técnico), solo si está aprobado
+    return order.admin_validation_status === 'approved';
+  }
+
+  canShowPendingValidationMessage(order: Order | null): boolean {
+    if (!order) return false;
+
+    // Debe estar en estado "Productos Validados"
+    if (order.status !== 'Productos Validados') return false;
+
+    // Debe estar pendiente de aprobación
+    if (order.admin_validation_status !== 'pending') return false;
+
+    // Solo para Técnico y Asesor Técnico
+    return this.auth.isTecnico() || this.auth.isAsesorTecnico();
+  }
+
   async processProducts(order: Order) {
     if (!order.id) return;
 

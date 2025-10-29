@@ -2677,16 +2677,37 @@
             <span>Solo gerentes, asesores técnicos y administradores pueden validar productos.</span>
           </div>
         </div>
+        <!-- Botón Procesar Productos (solo si está aprobado o es admin) -->
         <button
-          *ngIf="selectedOrder?.status === 'Productos Validados' && auth.canAdvanceOrderStatus()"
+          *ngIf="canShowProcessProductsButton(selectedOrder)"
           (click)="selectedOrder && processProducts(selectedOrder)"
           [disabled]="selectedOrder?.isProcessingProducts"
           class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
         >
           {{ selectedOrder?.isProcessingProducts ? 'Procesando...' : 'Procesar Productos' }}
         </button>
+
+        <!-- Mensaje: Pendiente de Validación del Administrador (para Técnico y Asesor Técnico) -->
         <div
-          *ngIf="selectedOrder?.status === 'Productos Validados' && !auth.canAdvanceOrderStatus()"
+          *ngIf="canShowPendingValidationMessage(selectedOrder)"
+          class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-lg"
+        >
+          <div class="flex items-center gap-3">
+            <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <p class="font-semibold text-amber-900">Pendiente de Validación del Administrador</p>
+              <p class="text-sm text-amber-700 mt-1">
+                Los productos han sido validados correctamente y están esperando la aprobación de un Gerente, Admin Corporativo o Super Admin antes de poder ser procesados.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensaje: Sin permisos para procesar productos -->
+        <div
+          *ngIf="selectedOrder?.status === 'Productos Validados' && !auth.canAdvanceOrderStatus() && !canShowPendingValidationMessage(selectedOrder)"
           class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800"
         >
           <div class="flex items-center gap-2">
