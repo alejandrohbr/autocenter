@@ -41,8 +41,8 @@ import { OrderPermissionsService } from '../services/order-permissions.service';
           </div>
           <div>
             <p class="text-sm font-medium text-blue-900">Vehículo</p>
-            <p class="text-lg font-bold text-blue-700">{{ order.vehicle?.placas || 'N/A' }}</p>
-            <p class="text-xs text-blue-600">{{ order.vehicle?.marca }} {{ order.vehicle?.modelo }}</p>
+            <p class="text-lg font-bold text-blue-700">{{ order.vehicle?.placas || order.vehiculo?.placas || 'N/A' }}</p>
+            <p class="text-xs text-blue-600">{{ order.vehicle?.marca || order.vehiculo?.marca }} {{ order.vehicle?.modelo || order.vehiculo?.modelo }}</p>
           </div>
           <div>
             <p class="text-sm font-medium text-blue-900">Fecha</p>

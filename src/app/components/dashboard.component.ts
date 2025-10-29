@@ -2391,10 +2391,21 @@ export class DashboardComponent implements OnInit {
         const invoices = await this.xmlProductsService.getOrderInvoices(order.id);
         const productosPorProveedor = this.xmlProductsService.groupProductsByProvider(xmlProducts, invoices);
 
+        console.log('Productos XML cargados:', xmlProducts);
+        console.log('Productos por proveedor:', productosPorProveedor);
+
+        // Calcular total de productos procesados
+        const processedCount = xmlProducts.filter(p => p.isProcessed || p.product_status === 'processed').length;
+        const totalAmount = productosPorProveedor.reduce((sum, p) => sum + p.montoTotal, 0);
+
         this.selectedOrder = {
           ...order,
-          productosPorProveedor: productosPorProveedor
+          productosPorProveedor: productosPorProveedor,
+          processedProductsCount: processedCount,
+          presupuesto: totalAmount || order.presupuesto
         };
+
+        console.log('Selected order actualizado:', this.selectedOrder);
       } catch (error) {
         console.error('Error cargando productos para validación pre-OC:', error);
       }

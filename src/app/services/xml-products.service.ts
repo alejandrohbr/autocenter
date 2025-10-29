@@ -179,7 +179,12 @@ export class XmlProductsService {
   }
 
   groupProductsByProvider(products: XmlProduct[], invoices?: OrderInvoice[]): ProductosPorProveedor[] {
-    const grouped = products.reduce((acc, product) => {
+    // Filtrar solo productos procesados
+    const processedProducts = products.filter(p =>
+      p.isProcessed || p.product_status === 'processed'
+    );
+
+    const grouped = processedProducts.reduce((acc, product) => {
       if (!acc[product.proveedor]) {
         const invoice = invoices?.find(inv => inv.proveedor === product.proveedor);
         acc[product.proveedor] = {
@@ -193,7 +198,8 @@ export class XmlProductsService {
       }
 
       acc[product.proveedor].productos.push(product);
-      acc[product.proveedor].montoTotal += product.total;
+      // Usar precio * cantidad en lugar de total
+      acc[product.proveedor].montoTotal += (product.precio * product.cantidad);
 
       if (product.isValidated) {
         acc[product.proveedor].totalValidados++;
