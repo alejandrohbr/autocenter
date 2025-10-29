@@ -1076,7 +1076,21 @@ export class DashboardComponent implements OnInit {
     }
 
     try {
-      const folio = await this.generateUniqueFolio();
+      // Usar el folio ingresado por el usuario o generar uno automáticamente
+      let folio: string;
+      if (this.newOrder.folio && this.newOrder.folio.trim()) {
+        // Verificar que el folio ingresado sea único
+        const isUnique = await this.customerService.checkFolioUnique(this.newOrder.folio.trim());
+        if (!isUnique) {
+          alert(`El folio "${this.newOrder.folio}" ya existe. Por favor use un folio diferente o deje el campo vacío para generar uno automáticamente.`);
+          return;
+        }
+        folio = this.newOrder.folio.trim();
+      } else {
+        // Generar folio automáticamente si no se proporcionó uno
+        folio = await this.generateUniqueFolio();
+      }
+
       let vehicleId = this.selectedVehicle?.id || null;
 
       if (!vehicleId && this.newOrder.diagnostic?.vehicleInfo?.plate && this.selectedCustomer?.id) {
