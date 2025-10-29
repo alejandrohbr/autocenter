@@ -1498,6 +1498,20 @@
     <div class="border-b border-gray-200 bg-gray-50 px-6">
       <nav class="flex gap-4 -mb-px">
         <button
+          *ngIf="shouldShowBillingSection(selectedOrder)"
+          (click)="detailActiveTab = 'billing'"
+          [class.border-emerald-600]="detailActiveTab === 'billing'"
+          [class.text-emerald-600]="detailActiveTab === 'billing'"
+          [class.border-transparent]="detailActiveTab !== 'billing'"
+          [class.text-gray-500]="detailActiveTab !== 'billing'"
+          class="py-3 px-4 border-b-2 font-medium text-sm hover:text-emerald-600 hover:border-emerald-300 transition-colors flex items-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+          Cobro Final
+        </button>
+        <button
           (click)="detailActiveTab = 'info'"
           [class.border-blue-600]="detailActiveTab === 'info'"
           [class.text-blue-600]="detailActiveTab === 'info'"
@@ -1561,20 +1575,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
           </svg>
           Recomendaciones
-        </button>
-        <button
-          *ngIf="shouldShowBillingSection(selectedOrder)"
-          (click)="detailActiveTab = 'billing'"
-          [class.border-emerald-600]="detailActiveTab === 'billing'"
-          [class.text-emerald-600]="detailActiveTab === 'billing'"
-          [class.border-transparent]="detailActiveTab !== 'billing'"
-          [class.text-gray-500]="detailActiveTab !== 'billing'"
-          class="py-3 px-4 border-b-2 font-medium text-sm hover:text-emerald-600 hover:border-emerald-300 transition-colors flex items-center gap-2"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-          </svg>
-          Cobro Final
         </button>
         <button
           *ngIf="xmlProducts.length > 0"
@@ -1774,7 +1774,7 @@
               </div>
               <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
                 <p class="text-sm font-medium text-emerald-100 mb-1">Monto Pagado</p>
-                <p class="text-xl font-bold text-white">\${{ (selectedOrder.amount_paid || 0).toFixed(2) }}</p>
+                <p class="text-xl font-bold text-white">${{ (selectedOrder.amount_paid || 0).toFixed(2) }}</p>
               </div>
               <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
                 <p class="text-sm font-medium text-emerald-100 mb-1">Estado de Entrega</p>
@@ -1812,11 +1812,11 @@
                     <td class="p-3 font-semibold text-gray-900">{{ service.nombre }}</td>
                     <td class="p-3 text-gray-700">{{ service.categoria }}</td>
                     <td class="p-3 text-gray-600 text-xs">{{ service.descripcion }}</td>
-                    <td class="p-3 text-right font-bold text-green-700">\${{ service.precio.toFixed(2) }}</td>
+                    <td class="p-3 text-right font-bold text-green-700">${{ service.precio.toFixed(2) }}</td>
                   </tr>
                   <tr class="bg-blue-100">
                     <td colspan="3" class="p-3 text-right font-bold text-blue-900">Subtotal Manos de Obra:</td>
-                    <td class="p-3 text-right font-bold text-blue-900">\${{ calculateServicesForBilling(selectedOrder).toFixed(2) }}</td>
+                    <td class="p-3 text-right font-bold text-blue-900">${{ calculateServicesForBilling(selectedOrder).toFixed(2) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -1852,12 +1852,12 @@
                     <td class="p-2 font-medium text-gray-900">{{ product.descripcion }}</td>
                     <td class="text-center p-2 font-mono text-xs text-gray-700">{{ product.sku_xml || 'N/A' }}</td>
                     <td class="text-center p-2 font-mono text-xs bg-yellow-100 font-semibold text-gray-900">{{ product.sku_oracle || 'N/A' }}</td>
-                    <td class="text-right p-2 text-gray-900">\${{ product.precio.toFixed(2) }}</td>
+                    <td class="text-right p-2 text-gray-900">${{ product.precio.toFixed(2) }}</td>
                     <td class="text-center p-2 font-mono text-xs text-gray-700">{{ product.division || '-' }}</td>
                     <td class="text-center p-2 font-mono text-xs text-gray-700">{{ product.linea || '-' }}</td>
                     <td class="text-center p-2 font-mono text-xs text-gray-700">{{ product.clase || '-' }}</td>
                     <td class="text-center p-2 font-semibold text-gray-900">{{ product.cantidad }}</td>
-                    <td class="text-right p-2 font-bold text-green-700">\${{ (product.precio * product.cantidad).toFixed(2) }}</td>
+                    <td class="text-right p-2 font-bold text-green-700">${{ (product.precio * product.cantidad).toFixed(2) }}</td>
                     <td class="text-center p-2">
                       <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         ✓ Procesado
@@ -1866,7 +1866,7 @@
                   </tr>
                   <tr class="bg-purple-100">
                     <td colspan="8" class="p-2 text-right font-bold text-purple-900">Subtotal Refacciones:</td>
-                    <td class="p-2 text-right font-bold text-purple-900">\${{ calculateXmlProductsTotal().toFixed(2) }}</td>
+                    <td class="p-2 text-right font-bold text-purple-900">${{ calculateXmlProductsTotal().toFixed(2) }}</td>
                     <td></td>
                   </tr>
                 </tbody>
@@ -1910,25 +1910,25 @@
                 <div class="space-y-3">
                   <div class="flex justify-between items-center pb-2 border-b border-emerald-200">
                     <span class="text-sm font-semibold text-gray-700">Subtotal Manos de Obra:</span>
-                    <span class="text-lg font-bold text-gray-900">\${{ calculateServicesForBilling(selectedOrder).toFixed(2) }}</span>
+                    <span class="text-lg font-bold text-gray-900">${{ calculateServicesForBilling(selectedOrder).toFixed(2) }}</span>
                   </div>
                   <div class="flex justify-between items-center pb-2 border-b border-emerald-200">
                     <span class="text-sm font-semibold text-gray-700">Subtotal Refacciones:</span>
-                    <span class="text-lg font-bold text-gray-900">\${{ calculateXmlProductsTotal().toFixed(2) }}</span>
+                    <span class="text-lg font-bold text-gray-900">${{ calculateXmlProductsTotal().toFixed(2) }}</span>
                   </div>
                   <div class="flex justify-between items-center pb-2 border-b border-emerald-200">
                     <span class="text-sm font-semibold text-gray-700">Subtotal:</span>
-                    <span class="text-lg font-bold text-gray-900">\${{ calculateGrandTotal().toFixed(2) }}</span>
+                    <span class="text-lg font-bold text-gray-900">${{ calculateGrandTotal().toFixed(2) }}</span>
                   </div>
 
                   <div *ngIf="selectedOrder.is_employee" class="flex justify-between items-center pb-2 border-b border-emerald-200 bg-yellow-50 -mx-2 px-2 py-1 rounded">
                     <span class="text-sm font-semibold text-yellow-700">Descuento Empleado (10%):</span>
-                    <span class="text-lg font-bold text-red-600">-\${{ calculateEmployeeDiscount().toFixed(2) }}</span>
+                    <span class="text-lg font-bold text-red-600">-${{ calculateEmployeeDiscount().toFixed(2) }}</span>
                   </div>
 
                   <div class="flex justify-between items-center pt-3 border-t-2 border-emerald-400">
                     <span class="text-xl font-bold text-emerald-900">TOTAL A COBRAR:</span>
-                    <span class="text-3xl font-bold text-emerald-600">\${{ calculateFinalTotal().toFixed(2) }}</span>
+                    <span class="text-3xl font-bold text-emerald-600">${{ calculateFinalTotal().toFixed(2) }}</span>
                   </div>
                 </div>
               </div>
@@ -3097,7 +3097,7 @@
       <!-- Total a cobrar (referencia) -->
       <div class="bg-emerald-50 border-2 border-emerald-200 rounded-lg p-4 mb-6">
         <p class="text-sm font-semibold text-emerald-700 mb-1">Total a Cobrar (Referencia)</p>
-        <p class="text-3xl font-bold text-emerald-900">\${{ calculateFinalTotal().toFixed(2) }}</p>
+        <p class="text-3xl font-bold text-emerald-900">${{ calculateFinalTotal().toFixed(2) }}</p>
       </div>
 
       <!-- Input de cantidad pagada -->
