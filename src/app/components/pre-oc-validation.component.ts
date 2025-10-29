@@ -30,7 +30,7 @@ import { OrderPermissionsService } from '../services/order-permissions.service';
 
       <!-- Información de la Orden -->
       <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <p class="text-sm font-medium text-blue-900">Folio de Orden</p>
             <p class="text-lg font-bold text-blue-700">{{ order.folio }}</p>
@@ -40,14 +40,24 @@ import { OrderPermissionsService } from '../services/order-permissions.service';
             <p class="text-lg font-bold text-blue-700">{{ order.cliente }}</p>
           </div>
           <div>
-            <p class="text-sm font-medium text-blue-900">Estado Actual</p>
-            <p class="text-lg font-bold text-blue-700">{{ order.status }}</p>
+            <p class="text-sm font-medium text-blue-900">Vehículo</p>
+            <p class="text-lg font-bold text-blue-700">{{ order.vehicle?.placas || 'N/A' }}</p>
+            <p class="text-xs text-blue-600">{{ order.vehicle?.marca }} {{ order.vehicle?.modelo }}</p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-blue-900">Fecha</p>
+            <p class="text-lg font-bold text-blue-700">{{ order.fecha | date:'dd/MM/yyyy' }}</p>
+            <p class="text-xs text-blue-600">{{ order.fecha | date:'HH:mm' }}</p>
           </div>
           <div>
             <p class="text-sm font-medium text-blue-900">Total</p>
-            <p class="text-lg font-bold text-blue-700">
+            <p class="text-lg font-bold text-green-700">
               \${{ order.presupuesto?.toFixed(2) || '0.00' }}
             </p>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-blue-900">Productos Procesados</p>
+            <p class="text-lg font-bold text-purple-700">{{ order.processedProductsCount || 0 }} productos</p>
           </div>
         </div>
       </div>
@@ -80,25 +90,39 @@ import { OrderPermissionsService } from '../services/order-permissions.service';
             </div>
 
             <!-- Lista de Refacciones -->
-            <div class="bg-gray-50 rounded p-3 max-h-48 overflow-y-auto">
-              <table class="w-full text-sm">
-                <thead class="bg-gray-200 sticky top-0">
+            <div class="bg-gray-50 rounded p-3 max-h-96 overflow-y-auto">
+              <table class="w-full text-xs">
+                <thead class="bg-gray-300 sticky top-0">
                   <tr>
-                    <th class="text-left p-2">SKU</th>
-                    <th class="text-left p-2">Descripción</th>
-                    <th class="text-center p-2">Cant.</th>
-                    <th class="text-right p-2">Precio</th>
-                    <th class="text-right p-2">Total</th>
+                    <th class="text-left p-2 font-bold">Descripción</th>
+                    <th class="text-center p-2 font-bold">SKU XML</th>
+                    <th class="text-center p-2 font-bold">SKU Oracle</th>
+                    <th class="text-right p-2 font-bold">Costo</th>
+                    <th class="text-center p-2 font-bold">División</th>
+                    <th class="text-center p-2 font-bold">Línea</th>
+                    <th class="text-center p-2 font-bold">Clase</th>
+                    <th class="text-center p-2 font-bold">Cant.</th>
+                    <th class="text-right p-2 font-bold">Costo Total</th>
+                    <th class="text-center p-2 font-bold">Estado</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let producto of proveedor.productos" class="border-b border-gray-200">
-                    <td class="p-2 font-mono text-xs">{{ producto.sku || 'N/A' }}</td>
-                    <td class="p-2">{{ producto.descripcion }}</td>
-                    <td class="text-center p-2">{{ producto.cantidad }}</td>
-                    <td class="text-right p-2">\${{ producto.precio.toFixed(2) }}</td>
-                    <td class="text-right p-2 font-semibold">
-                      \${{ (producto.precio * producto.cantidad).toFixed(2) }}
+                  <tr *ngFor="let producto of proveedor.productos" class="border-b border-gray-200 hover:bg-white">
+                    <td class="p-2 font-medium">{{ producto.descripcion }}</td>
+                    <td class="text-center p-2 font-mono text-xs">{{ producto.sku_xml || 'N/A' }}</td>
+                    <td class="text-center p-2 font-mono text-xs bg-yellow-50 font-semibold">{{ producto.sku_oracle || 'N/A' }}</td>
+                    <td class="text-right p-2">\${{ producto.precio?.toFixed(2) || '0.00' }}</td>
+                    <td class="text-center p-2 font-mono">{{ producto.division || '-' }}</td>
+                    <td class="text-center p-2 font-mono">{{ producto.linea || '-' }}</td>
+                    <td class="text-center p-2 font-mono">{{ producto.clase || '-' }}</td>
+                    <td class="text-center p-2 font-semibold">{{ producto.cantidad }}</td>
+                    <td class="text-right p-2 font-bold text-green-700">
+                      \${{ ((producto.precio || 0) * producto.cantidad).toFixed(2) }}
+                    </td>
+                    <td class="text-center p-2">
+                      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        ✓ Procesado
+                      </span>
                     </td>
                   </tr>
                 </tbody>

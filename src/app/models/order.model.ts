@@ -141,6 +141,14 @@ export interface Order {
     color?: string;
     numero_serie?: string;
   };
+  vehicle?: {
+    placas?: string;
+    marca?: string;
+    modelo?: string;
+    anio?: string;
+    color?: string;
+    numero_serie?: string;
+  };
   tienda: string;
   division: string;
   productos: Product[];
@@ -153,6 +161,7 @@ export interface Order {
   promotion?: string;
   purchaseOrderFolio?: string;
   processedProducts?: any[];
+  processedProductsCount?: number;
   xmlProducts?: XmlProduct[];
   productosPorProveedor?: ProductosPorProveedor[];
   authorization_status?: 'pending' | 'sent' | 'completed' | 'partial';

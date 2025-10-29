@@ -2265,14 +2265,30 @@ export class DashboardComponent implements OnInit {
 
       if (error) throw error;
 
-      this.pendingPreOCOrders = (data || []).map((order: any) => ({
-        ...order,
-        fecha: new Date(order.fecha),
-        productos: order.productos || [],
-        servicios: order.servicios || [],
-        presupuesto: order.presupuesto || 0,
-        customer: order.customer || {},
-        vehicle: order.vehicle || {}
+      // Cargar conteo de productos procesados para cada orden
+      this.pendingPreOCOrders = await Promise.all((data || []).map(async (order: any) => {
+        let processedProductsCount = 0;
+
+        if (order.id) {
+          const { count } = await this.supabaseService.client
+            .from('xml_products')
+            .select('*', { count: 'exact', head: true })
+            .eq('order_id', order.id)
+            .eq('product_status', 'processed');
+
+          processedProductsCount = count || 0;
+        }
+
+        return {
+          ...order,
+          fecha: new Date(order.fecha),
+          productos: order.productos || [],
+          servicios: order.servicios || [],
+          presupuesto: order.presupuesto || 0,
+          customer: order.customer || {},
+          vehicle: order.vehicle || {},
+          processedProductsCount: processedProductsCount
+        };
       }));
 
       this.pendingPreOCCount = this.pendingPreOCOrders.length;

@@ -1248,8 +1248,8 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div>
                     <p class="text-xs text-gray-500 font-medium">Vehículo</p>
-                    <p class="text-sm font-semibold text-gray-900">{{ order.vehiculo?.placas || 'N/A' }}</p>
-                    <p class="text-xs text-gray-600">{{ order.vehiculo?.marca }} {{ order.vehiculo?.modelo }}</p>
+                    <p class="text-sm font-semibold text-gray-900">{{ order.vehicle?.placas || 'N/A' }}</p>
+                    <p class="text-xs text-gray-600">{{ order.vehicle?.marca }} {{ order.vehicle?.modelo }}</p>
                   </div>
                   <div>
                     <p class="text-xs text-gray-500 font-medium">Fecha</p>
@@ -1262,7 +1262,7 @@
                   </div>
                   <div>
                     <p class="text-xs text-gray-500 font-medium">Productos Procesados</p>
-                    <p class="text-sm font-bold text-blue-600">{{ order.processedProducts?.length || 0 }} productos</p>
+                    <p class="text-sm font-bold text-blue-600">{{ order.processedProductsCount || 0 }} productos</p>
                   </div>
                 </div>
 
