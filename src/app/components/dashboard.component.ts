@@ -1855,7 +1855,10 @@ export class DashboardComponent implements OnInit {
 
   cancelXmlUpload() {
     this.showXmlUploadModal = false;
-    this.selectedOrder = null;
+    this.showProductClassificationModal = false;
+    this.currentProductToClassify = null;
+    this.currentProductIndex = 0;
+    this.productsToClassify = [];
   }
 
   cancelProductClassification() {
