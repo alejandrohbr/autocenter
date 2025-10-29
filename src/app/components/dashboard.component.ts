@@ -2277,8 +2277,25 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  openPreOCValidation(order: Order) {
+  async openPreOCValidation(order: Order) {
     this.selectedOrder = order;
+
+    // Cargar productos XML agrupados por proveedor
+    if (order.id) {
+      try {
+        const xmlProducts = await this.xmlProductsService.getOrderXmlProducts(order.id);
+        const invoices = await this.xmlProductsService.getOrderInvoices(order.id);
+        const productosPorProveedor = this.xmlProductsService.groupProductsByProvider(xmlProducts, invoices);
+
+        this.selectedOrder = {
+          ...order,
+          productosPorProveedor: productosPorProveedor
+        };
+      } catch (error) {
+        console.error('Error cargando productos para validación pre-OC:', error);
+      }
+    }
+
     this.showPreOCValidationModal = true;
   }
 
