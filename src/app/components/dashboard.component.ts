@@ -702,6 +702,87 @@ export class DashboardComponent implements OnInit {
     return this.selectedOrderVehicle;
   }
 
+  shouldShowBillingSection(order: Order | null): boolean {
+    if (!order) return false;
+
+    const billingStatuses = [
+      'Productos Procesados',
+      'Pre-OC Validado',
+      'Pendiente de Orden de Compra',
+      'Completado',
+      'Entregado'
+    ];
+
+    return billingStatuses.includes(order.status);
+  }
+
+  getAuthorizedServicesForBilling(order: Order): Service[] {
+    if (!order.servicios) return [];
+    return order.servicios.filter(service => service.isAuthorized);
+  }
+
+  calculateServicesForBilling(order: Order): number {
+    const authorizedServices = this.getAuthorizedServicesForBilling(order);
+    return authorizedServices.reduce((total, service) => total + service.precio, 0);
+  }
+
+  calculateXmlProductsTotal(): number {
+    return this.xmlProducts.reduce((total, product) => {
+      return total + (product.precio * product.cantidad);
+    }, 0);
+  }
+
+  calculateGrandTotal(): number {
+    if (!this.selectedOrder) return 0;
+    return this.calculateServicesForBilling(this.selectedOrder) + this.calculateXmlProductsTotal();
+  }
+
+  calculateEmployeeDiscount(): number {
+    return this.calculateGrandTotal() * 0.10;
+  }
+
+  calculateFinalTotal(): number {
+    const grandTotal = this.calculateGrandTotal();
+    if (this.selectedOrder?.is_employee) {
+      return grandTotal - this.calculateEmployeeDiscount();
+    }
+    return grandTotal;
+  }
+
+  onEmployeeCheckboxChange(): void {
+    if (!this.selectedOrder?.is_employee) {
+      this.selectedOrder!.employee_number = undefined;
+    }
+    this.saveEmployeeInfo();
+  }
+
+  async saveEmployeeInfo(): Promise<void> {
+    if (!this.selectedOrder?.id) return;
+
+    try {
+      const { error } = await this.supabaseService.client
+        .from('orders')
+        .update({
+          is_employee: this.selectedOrder.is_employee || false,
+          employee_number: this.selectedOrder.employee_number || null,
+          employee_discount_amount: this.selectedOrder.is_employee ? this.calculateEmployeeDiscount() : 0,
+          final_total: this.calculateFinalTotal(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', this.selectedOrder.id);
+
+      if (error) throw error;
+
+      await this.authService.logAction('update_employee_info', {
+        order_id: this.selectedOrder.id,
+        is_employee: this.selectedOrder.is_employee,
+        employee_number: this.selectedOrder.employee_number
+      });
+    } catch (error) {
+      console.error('Error guardando información de empleado:', error);
+    }
+  }
+
   addProduct() {
     const missingFields: string[] = [];
 

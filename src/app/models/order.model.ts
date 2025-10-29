@@ -174,6 +174,10 @@ export interface Order {
   technician_name?: string;
   technician_number?: string;
   purchase_order_number?: string;
+  is_employee?: boolean;
+  employee_number?: string;
+  employee_discount_amount?: number;
+  final_total?: number;
   created_at?: Date;
   updated_at?: Date;
   isProcessingXml?: boolean;
