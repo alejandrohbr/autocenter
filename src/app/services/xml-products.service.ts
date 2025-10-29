@@ -44,10 +44,12 @@ export class XmlProductsService {
             precio: product.precio || 0,
             total: product.total || 0,
             clave_prod_serv: product.claveProdServ || null,
+            sku_xml: product.claveProdServ || null,
             clave_unidad: product.claveUnidad || null,
             unidad: product.unidad || 'PZ',
             is_validated: false,
             is_new: true,
+            product_status: 'pending',
             proveedor: product.proveedor || invoice.proveedor
           }));
 
@@ -108,7 +110,8 @@ export class XmlProductsService {
         margen: classification.margen,
         precio_venta: classification.precioVenta,
         is_validated: true,
-        is_new: false
+        is_new: false,
+        product_status: 'found'
       })
       .eq('id', productId);
 
@@ -121,7 +124,8 @@ export class XmlProductsService {
       .update({
         sku: sku,
         is_validated: true,
-        is_new: false
+        is_new: false,
+        product_status: 'found'
       })
       .eq('id', productId);
 
@@ -286,7 +290,8 @@ export class XmlProductsService {
         is_validated: true,
         is_new: false,
         is_auto_classified: true,
-        not_found: true
+        not_found: true,
+        product_status: 'not_found'
       })
       .eq('id', productId);
 

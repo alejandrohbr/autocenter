@@ -1963,7 +1963,19 @@ export class DashboardComponent implements OnInit {
         const product = products[i];
         if (product.id && product.clase) {
           const skus = this.xmlProductsService.generateSKU(product.clase, i + 1);
-          await this.xmlProductsService.updateProductSku(product.id, skus.original, skus.final);
+          // Actualizar producto con SKU Oracle y cambiar estado a 'processed'
+          await this.supabaseService.client
+            .from('xml_products')
+            .update({
+              sku_oracle: skus.final,
+              sku_original: skus.original,
+              sku_final: skus.final,
+              product_status: 'processed',
+              is_processed: true,
+              processed_at: new Date().toISOString(),
+              processed_by: this.user?.id
+            })
+            .eq('id', product.id);
         }
       }
 

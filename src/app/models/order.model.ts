@@ -78,6 +78,8 @@ export interface XmlProduct {
   claveUnidad?: string;
   unidad?: string;
   sku?: string;
+  sku_xml?: string;
+  sku_oracle?: string;
   division?: string;
   linea?: string;
   clase?: string;
@@ -87,6 +89,9 @@ export interface XmlProduct {
   isValidated: boolean;
   isNew: boolean;
   isProcessed?: boolean;
+  product_status?: 'pending' | 'found' | 'not_found' | 'processed';
+  processed_at?: Date;
+  processed_by?: string;
   proveedor: string;
   is_auto_classified?: boolean;
   not_found?: boolean;
