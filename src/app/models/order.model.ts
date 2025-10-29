@@ -110,6 +110,7 @@ export interface OrderInvoice {
   xml_products?: XmlProduct[];
   validados?: number;
   nuevos?: number;
+  isSupplierValid?: boolean;
 }
 
 export interface ProductosPorProveedor {

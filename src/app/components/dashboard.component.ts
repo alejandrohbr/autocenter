@@ -1766,6 +1766,10 @@ export class DashboardComponent implements OnInit {
         alert(mensaje);
         this.showXmlUploadModal = false;
         await this.loadOrders();
+        // Recargar productos XML inmediatamente para ocultar bot\u00f3n "Cargar XML"
+        if (this.selectedOrder?.id) {
+          await this.loadOrderXmlProducts(this.selectedOrder);
+        }
       }
     } catch (error: any) {
       console.error('Error completo procesando facturas XML:', error);
@@ -2043,6 +2047,47 @@ export class DashboardComponent implements OnInit {
       this.productosPorProveedor = this.xmlProductsService.groupProductsByProvider(this.xmlProducts, this.uploadedInvoices);
     } catch (error) {
       console.error('Error cargando productos XML:', error);
+    }
+  }
+
+  hasXmlProducts(order: Order): boolean {
+    // Verificar si el pedido tiene productos XML cargados
+    return this.uploadedInvoices.length > 0 || this.xmlProducts.length > 0;
+  }
+
+  async deleteInvoice(invoice: OrderInvoice) {
+    if (!invoice.id) return;
+
+    if (!confirm(`¿Estás seguro de eliminar la factura ${invoice.invoice_folio}?\n\nEsto eliminará también todos los productos asociados a esta factura.`)) {
+      return;
+    }
+
+    try {
+      // Eliminar productos XML asociados
+      const { error: productsError } = await this.supabaseService.client
+        .from('xml_products')
+        .delete()
+        .eq('invoice_id', invoice.id);
+
+      if (productsError) throw productsError;
+
+      // Eliminar factura
+      const { error: invoiceError } = await this.supabaseService.client
+        .from('order_invoices')
+        .delete()
+        .eq('id', invoice.id);
+
+      if (invoiceError) throw invoiceError;
+
+      alert('Factura eliminada exitosamente');
+
+      // Recargar productos XML
+      if (this.selectedOrder?.id) {
+        await this.loadOrderXmlProducts(this.selectedOrder);
+      }
+    } catch (error) {
+      console.error('Error eliminando factura:', error);
+      alert('Error al eliminar la factura');
     }
   }
 

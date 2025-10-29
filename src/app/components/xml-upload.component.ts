@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OrderInvoice, XmlProduct } from '../models/order.model';
+import { SupabaseService } from '../services/supabase.service';
 
 @Component({
   selector: 'app-xml-upload',
@@ -62,14 +63,30 @@ import { OrderInvoice, XmlProduct } from '../models/order.model';
         <div *ngIf="processedInvoices.length > 0 && !isProcessing">
           <h3 class="text-lg font-semibold text-gray-800 mb-3">Facturas Procesadas ({{ processedInvoices.length }})</h3>
           <div class="space-y-4">
-            <div *ngFor="let invoice of processedInvoices; let i = index" class="border rounded-lg p-4 bg-gray-50">
+            <div *ngFor="let invoice of processedInvoices; let i = index"
+                 [class]="invoice.isSupplierValid === false ? 'border-2 border-red-500 rounded-lg p-4 bg-red-50' : 'border rounded-lg p-4 bg-gray-50'"
+            >
               <div class="flex justify-between items-start mb-3">
                 <div class="flex-1">
                   <h4 class="font-semibold text-gray-900">Factura: {{ invoice.invoice_folio }}</h4>
-                  <p class="text-sm text-gray-600 mt-1">
+
+                  <!-- Alerta de proveedor no registrado -->
+                  <div *ngIf="invoice.isSupplierValid === false" class="bg-red-100 border border-red-400 rounded-lg p-3 mt-2 mb-3">
+                    <div class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                      </svg>
+                      <div class="flex-1">
+                        <p class="font-bold text-red-800 text-sm">PROVEEDOR NO REGISTRADO</p>
+                        <p class="text-red-700 text-xs mt-1">Esta factura no se puede cargar porque el proveedor no existe en el catálogo.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p class="text-sm mt-1" [class.text-gray-600]="invoice.isSupplierValid !== false" [class.text-red-700]="invoice.isSupplierValid === false">
                     <span class="font-medium">Proveedor:</span> {{ invoice.proveedor }}
                   </p>
-                  <p class="text-sm text-gray-600">
+                  <p class="text-sm" [class.text-gray-600]="invoice.isSupplierValid !== false" [class.text-red-700]="invoice.isSupplierValid === false">
                     <span class="font-medium">RFC:</span> {{ invoice.rfc_proveedor }}
                   </p>
                   <p class="text-sm text-gray-600">
@@ -155,6 +172,8 @@ export class XmlUploadComponent {
   @Output() invoicesUploaded = new EventEmitter<OrderInvoice[]>();
   @Output() cancelled = new EventEmitter<void>();
 
+  private supabaseService = inject(SupabaseService);
+
   processedInvoices: OrderInvoice[] = [];
   expandedInvoices: boolean[] = [];
   errors: string[] = [];
@@ -171,8 +190,17 @@ export class XmlUploadComponent {
       const file = files[i];
       try {
         const invoice = await this.processXmlFile(file);
+
+        // Validar proveedor
+        const isSupplierValid = await this.supabaseService.validateSupplier(invoice.rfc_proveedor || '');
+        invoice.isSupplierValid = isSupplierValid;
+
         this.processedInvoices.push(invoice);
         this.expandedInvoices.push(false);
+
+        if (!isSupplierValid) {
+          this.errors.push(`Factura ${invoice.invoice_folio}: Proveedor "${invoice.proveedor}" (RFC: ${invoice.rfc_proveedor}) no está registrado en el catálogo`);
+        }
       } catch (error: any) {
         this.errors.push(`Error en ${file.name}: ${error.message}`);
       }
@@ -266,7 +294,23 @@ export class XmlUploadComponent {
 
   onSubmit() {
     if (this.processedInvoices.length === 0) return;
-    this.invoicesUploaded.emit(this.processedInvoices);
+
+    // Solo enviar facturas con proveedores válidos
+    const validInvoices = this.processedInvoices.filter(inv => inv.isSupplierValid !== false);
+
+    if (validInvoices.length === 0) {
+      alert('No hay facturas válidas para guardar. Todas las facturas tienen proveedores no registrados.');
+      return;
+    }
+
+    if (validInvoices.length < this.processedInvoices.length) {
+      const invalidCount = this.processedInvoices.length - validInvoices.length;
+      if (!confirm(`Hay ${invalidCount} factura(s) con proveedores no registrados que no se guardarán. ¿Deseas continuar con las ${validInvoices.length} factura(s) válida(s)?`)) {
+        return;
+      }
+    }
+
+    this.invoicesUploaded.emit(validInvoices);
   }
 
   onCancel() {

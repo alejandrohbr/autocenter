@@ -29,4 +29,35 @@ export class SupabaseService {
   get supabaseAnonKey(): string {
     return environment.supabaseAnonKey;
   }
+
+  async validateSupplier(rfc: string): Promise<boolean> {
+    const { data, error } = await this.supabase
+      .from('suppliers')
+      .select('id, rfc, is_active')
+      .eq('rfc', rfc)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error validating supplier:', error);
+      return false;
+    }
+
+    return data !== null;
+  }
+
+  async getSupplierByRFC(rfc: string) {
+    const { data, error } = await this.supabase
+      .from('suppliers')
+      .select('*')
+      .eq('rfc', rfc)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error getting supplier:', error);
+      return null;
+    }
+
+    return data;
+  }
 }
