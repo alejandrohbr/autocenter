@@ -676,8 +676,12 @@ export class DashboardComponent implements OnInit {
     const hasContent = hasProducts || hasServices || hasDiagnostic;
 
     const isAlreadyAuthorized = order.status === 'Autorizado' ||
-                                 order.status === 'Pendiente de Validación de Productos' ||
+                                 order.status === 'Cargando Facturas XML' ||
+                                 order.status === 'Validando Productos' ||
                                  order.status === 'Productos Validados' ||
+                                 order.status === 'Procesando Productos' ||
+                                 order.status === 'Productos Procesados' ||
+                                 order.status === 'Pre-OC Validado' ||
                                  order.status === 'Pendiente de Orden de Compra' ||
                                  order.status === 'Completado' ||
                                  order.status === 'Entregado';

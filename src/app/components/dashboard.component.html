@@ -111,7 +111,7 @@
           </span>
         </button>
         <button
-          *ngIf="auth.isGerente() || auth.isAdminCorporativo() || auth.isSuperAdmin()"
+          *ngIf="auth.isAdminCorporativo() || auth.isSuperAdmin()"
           (click)="setActiveView('pre-oc-validation')"
           [class]="activeView === 'pre-oc-validation' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
           class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-1">
@@ -1202,7 +1202,7 @@
     </div>
 
     <!-- Pre-OC Validation Tab -->
-    <div *ngIf="activeView === 'pre-oc-validation' && (auth.isGerente() || auth.isAdminCorporativo() || auth.isSuperAdmin())">
+    <div *ngIf="activeView === 'pre-oc-validation' && (auth.isAdminCorporativo() || auth.isSuperAdmin())">
       <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-indigo-100">
           <div class="flex items-center justify-between">
@@ -2696,6 +2696,27 @@
             <span>Solo gerentes, asesores técnicos y administradores pueden procesar productos.</span>
           </div>
         </div>
+
+        <!-- Mensaje para estado "Productos Procesados" -->
+        <div
+          *ngIf="selectedOrder?.status === 'Productos Procesados'"
+          class="bg-indigo-50 border-l-4 border-indigo-400 p-4 rounded"
+        >
+          <div class="flex items-center">
+            <svg class="w-6 h-6 text-indigo-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+            <div>
+              <p class="text-sm text-indigo-900 font-semibold">
+                ⏳ En espera de generación de Orden de Compra
+              </p>
+              <p class="text-xs text-indigo-700 mt-1">
+                Los productos han sido procesados exitosamente. Requiere validación Pre-OC por parte del Administrador Corporativo o Super Admin antes de generar la OC.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <button
           *ngIf="selectedOrder?.status === 'Pendiente de Orden de Compra' && auth.canAdvanceOrderStatus()"
           (click)="selectedOrder && generatePurchaseOrder(selectedOrder)"
