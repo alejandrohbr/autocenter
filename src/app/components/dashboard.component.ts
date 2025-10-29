@@ -1618,8 +1618,22 @@ export class DashboardComponent implements OnInit {
 
   isOrderAuthorized(order: Order | null): boolean {
     if (!order) return false;
-    // Un pedido está autorizado si tiene authorization_status 'completed' o 'partial'
-    return order.authorization_status === 'completed' || order.authorization_status === 'partial';
+    // Un pedido está autorizado cuando el status es "Autorizado" o estados posteriores
+    const authorizedStatuses = [
+      'Autorizado',
+      'XML Cargado',
+      'Productos Clasificados',
+      'Pendiente de Validación de Productos',
+      'Productos Validados',
+      'Pendiente Validación Admin',
+      'Aprobado por Admin',
+      'Productos Procesados',
+      'Pre-OC Validado',
+      'Pendiente de Orden de Compra',
+      'OC Generada',
+      'Entregado'
+    ];
+    return authorizedStatuses.includes(order.status);
   }
 
   closeLostSalesReport() {
