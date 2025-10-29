@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { AuthService } from './auth.service';
 import { Customer, Vehicle, CustomerSearchResult } from '../models/customer.model';
 import { Order } from '../models/order.model';
 
@@ -7,7 +8,10 @@ import { Order } from '../models/order.model';
   providedIn: 'root'
 })
 export class CustomerService {
-  constructor(private supabase: SupabaseService) {}
+  constructor(
+    private supabase: SupabaseService,
+    private auth: AuthService
+  ) {}
 
   get client() {
     return this.supabase.client;
@@ -219,15 +223,30 @@ export class CustomerService {
   }
 
   async getAllOrders(): Promise<Order[]> {
-    const { data, error } = await this.supabase.client
+    const user = this.auth.getCurrentUser();
+
+    // Construir query base
+    let query = this.supabase.client
       .from('orders')
       .select(`
         *,
         customer:customers(nombre_completo, telefono),
         vehicle:vehicles(placas, marca, modelo, anio),
         diagnostic_authorizations:diagnostic_items_authorization(*)
-      `)
-      .order('created_at', { ascending: false });
+      `);
+
+    // Filtrar por centro automotriz según el rol
+    // Super Admin y Admin Corporativo pueden ver todas las órdenes
+    // Gerente, Técnico y Asesor Técnico solo ven órdenes de su centro automotriz
+    if (user && user.autocenter) {
+      const allowedRoles = ['super_admin', 'admin_corporativo'];
+      if (!allowedRoles.includes(user.role)) {
+        // Filtrar por centro automotriz del usuario
+        query = query.eq('tienda', user.autocenter);
+      }
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error obteniendo todos los pedidos:', error);

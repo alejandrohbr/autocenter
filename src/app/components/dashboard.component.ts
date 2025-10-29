@@ -2323,7 +2323,8 @@ export class DashboardComponent implements OnInit {
 
   async loadPendingValidationOrders() {
     try {
-      const { data, error } = await this.supabaseService.client
+      // Construir query base
+      let query = this.supabaseService.client
         .from('orders')
         .select(`
           *,
@@ -2331,8 +2332,17 @@ export class DashboardComponent implements OnInit {
           vehicle:vehicles(*)
         `)
         .eq('status', 'Productos Validados')
-        .eq('admin_validation_status', 'pending')
-        .order('created_at', { ascending: false });
+        .eq('admin_validation_status', 'pending');
+
+      // Filtrar por centro automotriz si no es Super Admin o Admin Corporativo
+      if (this.user && this.user.autocenter) {
+        const allowedRoles = ['super_admin', 'admin_corporativo'];
+        if (!allowedRoles.includes(this.user.role)) {
+          query = query.eq('tienda', this.user.autocenter);
+        }
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -2420,7 +2430,8 @@ export class DashboardComponent implements OnInit {
 
   async loadPendingPreOCOrders() {
     try {
-      const { data, error } = await this.supabaseService.client
+      // Construir query base
+      let query = this.supabaseService.client
         .from('orders')
         .select(`
           *,
@@ -2428,8 +2439,17 @@ export class DashboardComponent implements OnInit {
           vehicle:vehicles(*)
         `)
         .eq('status', 'Productos Procesados')
-        .eq('pre_oc_validation_status', 'pending')
-        .order('created_at', { ascending: false });
+        .eq('pre_oc_validation_status', 'pending');
+
+      // Filtrar por centro automotriz si no es Super Admin o Admin Corporativo
+      if (this.user && this.user.autocenter) {
+        const allowedRoles = ['super_admin', 'admin_corporativo'];
+        if (!allowedRoles.includes(this.user.role)) {
+          query = query.eq('tienda', this.user.autocenter);
+        }
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -2657,6 +2677,7 @@ export class DashboardComponent implements OnInit {
             proveedor,
             order:orders(
               folio,
+              tienda,
               customer:customers(nombre_completo),
               vehicle:vehicles(placas, marca, modelo)
             )
@@ -2667,15 +2688,25 @@ export class DashboardComponent implements OnInit {
 
       if (error) throw error;
 
-      this.notFoundProducts = (data || []).map((product: any) => ({
+      let products = (data || []).map((product: any) => ({
         ...product,
         invoice_folio: product.invoice?.invoice_folio,
         proveedor: product.invoice?.proveedor,
         order_folio: product.invoice?.order?.folio,
+        order_tienda: product.invoice?.order?.tienda,
         cliente: product.invoice?.order?.customer?.nombre_completo,
         vehiculo: product.invoice?.order?.vehicle
       }));
 
+      // Filtrar por centro automotriz si no es Super Admin o Admin Corporativo
+      if (this.user && this.user.autocenter) {
+        const allowedRoles = ['super_admin', 'admin_corporativo'];
+        if (!allowedRoles.includes(this.user.role)) {
+          products = products.filter(p => p.order_tienda === this.user!.autocenter);
+        }
+      }
+
+      this.notFoundProducts = products;
       this.notFoundProductsCount = this.notFoundProducts.length;
     } catch (error: any) {
       console.error('Error cargando productos no encontrados:', error);
