@@ -1765,11 +1765,14 @@ export class DashboardComponent implements OnInit {
         }
         alert(mensaje);
         this.showXmlUploadModal = false;
-        await this.loadOrders();
-        // Recargar productos XML inmediatamente para ocultar bot\u00f3n "Cargar XML"
+
+        // Actualizar selectedOrder con el nuevo estado
         if (this.selectedOrder?.id) {
+          this.selectedOrder.status = 'Pendiente de Validación de Productos';
           await this.loadOrderXmlProducts(this.selectedOrder);
         }
+
+        await this.loadOrders();
       }
     } catch (error: any) {
       console.error('Error completo procesando facturas XML:', error);
@@ -1841,6 +1844,11 @@ export class DashboardComponent implements OnInit {
       this.showProductClassificationModal = false;
       this.currentProductToClassify = null;
       this.currentProductIndex = 0;
+
+      // Actualizar selectedOrder con el nuevo estado
+      if (this.selectedOrder) {
+        this.selectedOrder.status = 'Pendiente de Validación de Productos';
+      }
 
       await this.loadOrders();
 

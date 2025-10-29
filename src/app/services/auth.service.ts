@@ -263,6 +263,12 @@ export class AuthService {
     return this.isGerente() || this.canManageUsers();
   }
 
+  canAdvanceOrderStatus(): boolean {
+    // Solo gerente, asesor técnico, admin corporativo y super admin pueden avanzar estados
+    // Los técnicos NO pueden
+    return this.isGerente() || this.isAsesorTecnico() || this.isAdminCorporativo() || this.isSuperAdmin();
+  }
+
   canManageRole(targetRole: UserRole): boolean {
     if (this.isSuperAdmin()) return true;
     if (this.isAdminCorporativo()) {

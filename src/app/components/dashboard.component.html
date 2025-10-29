@@ -2527,7 +2527,6 @@
                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">División</th>
                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Línea</th>
                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Clase</th>
-                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Subclase</th>
                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Costo Total</th>
                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
@@ -2559,10 +2558,6 @@
                       <span *ngIf="producto.clase" class="font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded">{{ producto.clase }}</span>
                       <span *ngIf="!producto.clase" class="text-gray-400 text-xs">Pendiente</span>
                     </td>
-                    <td class="px-4 py-4 text-center text-sm text-gray-700">
-                      <span *ngIf="producto.subclase" class="font-mono bg-gray-100 px-2 py-1 rounded">{{ producto.subclase }}</span>
-                      <span *ngIf="!producto.subclase" class="text-gray-400 text-xs">-</span>
-                    </td>
                     <td class="px-4 py-4 text-center text-sm font-semibold text-gray-900">
                       {{ producto.cantidad }}
                     </td>
@@ -2570,14 +2565,11 @@
                       ${{ producto.total.toFixed(2) }}
                     </td>
                     <td class="px-4 py-4 text-center">
-                      <span *ngIf="producto.isNew" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                        Nuevo
+                      <span *ngIf="producto.isValidated" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        ✓ Encontrado
                       </span>
-                      <span *ngIf="producto.isValidated && !producto.isNew" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        ✓ Validado
-                      </span>
-                      <span *ngIf="producto.isProcessed" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        Procesado
+                      <span *ngIf="!producto.isValidated" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        ✗ No Encontrado
                       </span>
                     </td>
                   </tr>
@@ -2654,23 +2646,45 @@
           </p>
         </div>
         <button
-          *ngIf="selectedOrder?.status === 'Pendiente de Validación de Productos'"
+          *ngIf="selectedOrder?.status === 'Pendiente de Validación de Productos' && auth.canAdvanceOrderStatus()"
           (click)="selectedOrder && validateProducts(selectedOrder)"
           [disabled]="selectedOrder?.isValidatingProducts"
           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
         >
           {{ selectedOrder?.isValidatingProducts ? 'Validando...' : 'Validar Productos' }}
         </button>
+        <div
+          *ngIf="selectedOrder?.status === 'Pendiente de Validación de Productos' && !auth.canAdvanceOrderStatus()"
+          class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800"
+        >
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <span>Solo gerentes, asesores técnicos y administradores pueden validar productos.</span>
+          </div>
+        </div>
         <button
-          *ngIf="selectedOrder?.status === 'Productos Validados'"
+          *ngIf="selectedOrder?.status === 'Productos Validados' && auth.canAdvanceOrderStatus()"
           (click)="selectedOrder && processProducts(selectedOrder)"
           [disabled]="selectedOrder?.isProcessingProducts"
           class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
         >
           {{ selectedOrder?.isProcessingProducts ? 'Procesando...' : 'Procesar Productos' }}
         </button>
+        <div
+          *ngIf="selectedOrder?.status === 'Productos Validados' && !auth.canAdvanceOrderStatus()"
+          class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800"
+        >
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <span>Solo gerentes, asesores técnicos y administradores pueden procesar productos.</span>
+          </div>
+        </div>
         <button
-          *ngIf="selectedOrder?.status === 'Pendiente de Orden de Compra' && isAdmin()"
+          *ngIf="selectedOrder?.status === 'Pendiente de Orden de Compra' && auth.canAdvanceOrderStatus()"
           (click)="selectedOrder && generatePurchaseOrder(selectedOrder)"
           [disabled]="selectedOrder?.isGeneratingPurchaseOrder"
           class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
@@ -2678,7 +2692,7 @@
           {{ selectedOrder?.isGeneratingPurchaseOrder ? 'Generando...' : 'Generar Orden de Compra' }}
         </button>
         <div
-          *ngIf="selectedOrder?.status === 'Pendiente de Orden de Compra' && !isAdmin()"
+          *ngIf="selectedOrder?.status === 'Pendiente de Orden de Compra' && !auth.canAdvanceOrderStatus()"
           class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800"
         >
           <div class="flex items-center gap-2">
