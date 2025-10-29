@@ -55,12 +55,14 @@ export class DashboardComponent implements OnInit {
   showBudgetPreview = false;
   showDiagnosticModal = false;
   showPreOCValidationModal = false;
+  showPaymentModal = false;
+  paymentAmount: number = 0;
   selectedOrder: Order | null = null;
   selectedOrderCustomer: Customer | null = null;
   selectedOrderVehicle: Vehicle | null = null;
   isEditingDiagnostic = false;
   editingDiagnosticData: VehicleDiagnostic | null = null;
-  detailActiveTab: 'info' | 'products' | 'services' | 'summary' | 'diagnostic' | 'xml-products' = 'info';
+  detailActiveTab: 'info' | 'products' | 'services' | 'summary' | 'diagnostic' | 'xml-products' | 'billing' = 'info';
   isEditingProducts = false;
   isEditingServices = false;
   isEditingProductsMarginOnly = false; // Nuevo: solo permite editar margen
@@ -2142,13 +2144,80 @@ export class DashboardComponent implements OnInit {
   }
 
 
+  openPaymentModal() {
+    if (!this.selectedOrder) return;
+    this.paymentAmount = this.calculateFinalTotal();
+    this.showPaymentModal = true;
+  }
+
+  closePaymentModal() {
+    this.showPaymentModal = false;
+    this.paymentAmount = 0;
+  }
+
+  async confirmPayment() {
+    if (!this.selectedOrder?.id) return;
+
+    if (!this.paymentAmount || this.paymentAmount <= 0) {
+      alert('Por favor ingresa una cantidad válida');
+      return;
+    }
+
+    try {
+      const { error } = await this.supabaseService.client
+        .from('orders')
+        .update({
+          payment_status: 'paid',
+          amount_paid: this.paymentAmount,
+          paid_at: new Date().toISOString(),
+          paid_by: this.user?.id
+        })
+        .eq('id', this.selectedOrder.id);
+
+      if (error) throw error;
+
+      this.selectedOrder.payment_status = 'paid';
+      this.selectedOrder.amount_paid = this.paymentAmount;
+      this.selectedOrder.paid_at = new Date().toISOString();
+
+      await this.authService.logAction('register_payment', {
+        order_id: this.selectedOrder.id,
+        amount: this.paymentAmount
+      });
+
+      alert('Pago registrado exitosamente');
+      this.closePaymentModal();
+      await this.loadOrders();
+    } catch (error) {
+      console.error('Error registrando pago:', error);
+      alert('Error al registrar el pago');
+    }
+  }
+
   async markAsDelivered(order: Order) {
     if (!order.id) return;
 
+    if (order.payment_status !== 'paid') {
+      alert('El pedido debe estar pagado antes de marcarlo como entregado');
+      return;
+    }
+
     try {
-      await this.xmlProductsService.updateOrderStatus(order.id, 'Entregado', {});
+      const { error } = await this.supabaseService.client
+        .from('orders')
+        .update({
+          status: 'Entregado',
+          delivery_status: 'delivered',
+          delivered_at: new Date().toISOString(),
+          delivered_by: this.user?.id
+        })
+        .eq('id', order.id);
+
+      if (error) throw error;
 
       order.status = 'Entregado';
+      order.delivery_status = 'delivered';
+      order.delivered_at = new Date().toISOString();
 
       if (this.selectedOrder?.id === order.id) {
         this.selectedOrder = {...order};

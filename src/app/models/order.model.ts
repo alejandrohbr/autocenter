@@ -192,4 +192,11 @@ export interface Order {
   pre_oc_validated_by?: string;
   pre_oc_validated_at?: Date;
   pre_oc_validation_notes?: string;
+  payment_status?: 'pending' | 'paid' | 'partial';
+  amount_paid?: number;
+  paid_at?: string;
+  paid_by?: string;
+  delivery_status?: 'pending' | 'delivered';
+  delivered_at?: string;
+  delivered_by?: string;
 }
