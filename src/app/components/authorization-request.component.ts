@@ -27,14 +27,14 @@ interface AuthorizationItem {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="bg-white rounded-lg shadow-lg p-6">
-      <div class="border-b pb-4 mb-6">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-h-[90vh] flex flex-col">
+      <div class="border-b pb-4 mb-6 flex-shrink-0">
         <h2 class="text-2xl font-bold text-gray-800">Solicitud de Autorización</h2>
         <p class="text-gray-600 mt-2">Pedido: {{ orderFolio }}</p>
         <p class="text-gray-600">Cliente: {{ customerName }}</p>
       </div>
 
-      <div class="space-y-4">
+      <div class="space-y-4 overflow-y-auto flex-1 pr-2" style="max-height: calc(90vh - 300px);">
         <div
           *ngFor="let item of allItems; let i = index"
           class="border rounded-lg p-4 hover:shadow-md transition-shadow"
@@ -126,7 +126,7 @@ interface AuthorizationItem {
         </div>
       </div>
 
-      <div class="mt-6 pt-6 border-t">
+      <div class="mt-6 pt-6 border-t flex-shrink-0">
         <div class="bg-gray-50 rounded-lg p-4 mb-4">
           <div class="flex justify-between items-center mb-2">
             <span class="text-gray-700">Total de servicios ofrecidos:</span>

@@ -532,6 +532,27 @@ export class CustomerService {
     console.log('saveLostSales - RejectedItems:', rejectedItems);
 
     const lostSalesRecords = rejectedItems.map(item => {
+      // Determinar severity basado en el tipo de item
+      let severity = 'baja'; // Valor por defecto
+
+      if (item.type === 'diagnostic' && item.severity) {
+        // Items de diagnóstico ya tienen severity
+        severity = item.severity;
+      } else if (item.type === 'product') {
+        // Refacciones rechazadas son de severidad media
+        severity = 'media';
+      } else if (item.type === 'service') {
+        // Mano de obra rechazada depende del costo
+        const cost = item.estimatedCost || 0;
+        if (cost > 1000) {
+          severity = 'alta';
+        } else if (cost > 500) {
+          severity = 'media';
+        } else {
+          severity = 'baja';
+        }
+      }
+
       const record = {
         order_id: order.id,
         order_folio: order.folio,
@@ -545,7 +566,7 @@ export class CustomerService {
         estimated_cost: item.estimatedCost || 0,
         rejection_reason: item.rejectionReason || 'sin comentarios',
         rejection_date: new Date().toISOString(),
-        severity: item.severity,
+        severity: severity,
         technician_name: order.technician_name || order.diagnostic?.technicianName || 'No especificado'
       };
       console.log('Lost sales record:', record);
