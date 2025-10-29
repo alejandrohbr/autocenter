@@ -63,6 +63,7 @@ export class DashboardComponent implements OnInit {
   detailActiveTab: 'info' | 'products' | 'services' | 'summary' | 'diagnostic' | 'xml-products' = 'info';
   isEditingProducts = false;
   isEditingServices = false;
+  isEditingProductsMarginOnly = false; // Nuevo: solo permite editar margen
   editingProducts: Product[] = [];
   editingServices: Service[] = [];
   newProductEdit: Product = { descripcion: '', cantidad: 1, costo: 0, precio: 0, margen: 0, porcentaje: 0 };
@@ -412,10 +413,26 @@ export class DashboardComponent implements OnInit {
     }
 
     this.isEditingProducts = true;
+    this.isEditingProductsMarginOnly = false;
+  }
+
+  startEditingProductsMarginOnly() {
+    if (!this.selectedOrder) return;
+    this.editingProducts = JSON.parse(JSON.stringify(this.selectedOrder.productos || []));
+
+    if (this.editingProducts.length > 0 && this.editingProducts[0].porcentaje) {
+      this.selectedPaymentTypeEdit = this.editingProducts[0].porcentaje.toString();
+    } else {
+      this.selectedPaymentTypeEdit = '';
+    }
+
+    this.isEditingProducts = true;
+    this.isEditingProductsMarginOnly = true;
   }
 
   cancelEditingProducts() {
     this.isEditingProducts = false;
+    this.isEditingProductsMarginOnly = false;
     this.editingProducts = [];
     this.selectedPaymentTypeEdit = '';
   }
@@ -425,6 +442,7 @@ export class DashboardComponent implements OnInit {
     this.selectedOrder.productos = JSON.parse(JSON.stringify(this.editingProducts));
     await this.updateOrderInDatabase(this.selectedOrder);
     this.isEditingProducts = false;
+    this.isEditingProductsMarginOnly = false;
   }
 
   onPaymentTypeChangeEdit() {
@@ -1596,6 +1614,12 @@ export class DashboardComponent implements OnInit {
     return this.calculateAuthorizedProductsTotal(order) +
            this.calculateServicesTotal(order) +
            this.calculateAuthorizedDiagnosticTotal(order);
+  }
+
+  isOrderAuthorized(order: Order | null): boolean {
+    if (!order) return false;
+    // Un pedido está autorizado si tiene authorization_status 'completed' o 'partial'
+    return order.authorization_status === 'completed' || order.authorization_status === 'partial';
   }
 
   closeLostSalesReport() {
