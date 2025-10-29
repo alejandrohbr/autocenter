@@ -179,9 +179,11 @@ export class XmlProductsService {
   }
 
   groupProductsByProvider(products: XmlProduct[], invoices?: OrderInvoice[]): ProductosPorProveedor[] {
-    // Filtrar solo productos procesados
+    // Filtrar productos procesados Y no encontrados (ambos deben mostrarse en Pre-OC)
     const processedProducts = products.filter(p =>
-      p.isProcessed || p.product_status === 'processed'
+      p.isProcessed ||
+      p.product_status === 'processed' ||
+      p.product_status === 'not_found'
     );
 
     const grouped = processedProducts.reduce((acc, product) => {
@@ -250,6 +252,11 @@ export class XmlProductsService {
 
   private async buscarProductoEnBaseDatos(descripcion: string): Promise<{ sku: string } | null> {
     try {
+      // TODO: La tabla 'products' aún no existe en la base de datos
+      // Por ahora, retornamos null para indicar que el producto no fue encontrado
+      // Una vez creada la tabla products, descomentar el código siguiente:
+
+      /*
       const { data, error } = await this.supabase.client
         .from('products')
         .select('sku, descripcion')
@@ -262,6 +269,9 @@ export class XmlProductsService {
       }
 
       return { sku: data.sku };
+      */
+
+      return null;
     } catch (error) {
       console.error('Error buscando producto:', error);
       return null;
