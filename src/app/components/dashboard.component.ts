@@ -2402,7 +2402,8 @@ export class DashboardComponent implements OnInit {
           ...order,
           productosPorProveedor: productosPorProveedor,
           processedProductsCount: processedCount,
-          presupuesto: totalAmount || order.presupuesto
+          presupuesto: totalAmount || order.presupuesto,
+          fecha: order.fecha ? (typeof order.fecha === 'string' ? new Date(order.fecha) : order.fecha) : new Date()
         };
 
         console.log('Selected order actualizado:', this.selectedOrder);
