@@ -676,9 +676,14 @@ export class DashboardComponent implements OnInit {
     const hasContent = hasProducts || hasServices || hasDiagnostic;
 
     const isAlreadyAuthorized = order.status === 'Autorizado' ||
+                                 order.status === 'XML Cargado' ||
+                                 order.status === 'Productos Clasificados' ||
+                                 order.status === 'Pendiente de Validación de Productos' ||
                                  order.status === 'Cargando Facturas XML' ||
                                  order.status === 'Validando Productos' ||
                                  order.status === 'Productos Validados' ||
+                                 order.status === 'Pendiente Validación Admin' ||
+                                 order.status === 'Aprobado por Admin' ||
                                  order.status === 'Procesando Productos' ||
                                  order.status === 'Productos Procesados' ||
                                  order.status === 'Pre-OC Validado' ||
@@ -1912,27 +1917,40 @@ export class DashboardComponent implements OnInit {
 
       await new Promise(resolve => setTimeout(resolve, 2000));
 
+      // Si el usuario es Gerente, Admin Corporativo o Super Admin, auto-aprobar
+      const canAutoApprove = this.auth.isGerente() || this.auth.isAdminCorporativo() || this.auth.isSuperAdmin();
+
       await this.supabaseService.client
         .from('orders')
         .update({
           status: 'Productos Validados',
-          admin_validation_status: 'pending',
+          admin_validation_status: canAutoApprove ? 'approved' : 'pending',
+          admin_validated_by: canAutoApprove ? this.user?.id : null,
+          admin_validated_at: canAutoApprove ? new Date().toISOString() : null,
           is_validating_products: false,
           updated_at: new Date().toISOString()
         })
         .eq('id', order.id);
 
       order.status = 'Productos Validados';
-      order.admin_validation_status = 'pending';
+      order.admin_validation_status = canAutoApprove ? 'approved' : 'pending';
       order.isValidatingProducts = false;
 
       if (this.selectedOrder?.id === order.id) {
         this.selectedOrder = {...order};
       }
 
-      alert('Productos validados correctamente. Ahora requieren aprobación del administrador.');
+      if (canAutoApprove) {
+        await this.authService.logAction('auto_approve_validation', { order_id: order.id });
+        alert('Productos validados y aprobados correctamente. Ahora puede procesar los productos.');
+      } else {
+        alert('Productos validados correctamente. Ahora requieren aprobación del administrador.');
+      }
+
       await this.loadOrders();
-      await this.loadPendingValidationOrders();
+      if (!canAutoApprove) {
+        await this.loadPendingValidationOrders();
+      }
     } catch (error) {
       console.error('Error validando productos:', error);
       alert('Error al validar productos');
