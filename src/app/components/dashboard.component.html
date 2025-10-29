@@ -98,7 +98,7 @@
           Reportes
         </button>
         <button
-          *ngIf="auth.isSuperAdmin()"
+          *ngIf="auth.isGerente() || auth.isAdminCorporativo() || auth.isSuperAdmin()"
           (click)="setActiveView('admin-validation')"
           [class]="activeView === 'admin-validation' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
           class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-1">
@@ -143,8 +143,8 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
     <div *ngIf="activeView === 'dashboard'">
-      <!-- Super Admin Stats -->
-      <div *ngIf="auth.isSuperAdmin()" class="mb-8">
+      <!-- Admin Stats -->
+      <div *ngIf="auth.isGerente() || auth.isAdminCorporativo() || auth.isSuperAdmin()" class="mb-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">Panel de Administración</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
@@ -1094,7 +1094,7 @@
       <app-lost-sales-report (closed)="closeLostSalesReport()"></app-lost-sales-report>
     </div>
 
-    <div *ngIf="activeView === 'admin-validation' && auth.isSuperAdmin()">
+    <div *ngIf="activeView === 'admin-validation' && (auth.isGerente() || auth.isAdminCorporativo() || auth.isSuperAdmin())">
       <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-purple-100">
           <div class="flex items-center justify-between">
