@@ -200,28 +200,59 @@ import { OrderPermissionsService } from '../services/order-permissions.service';
       </div>
 
       <!-- Acciones -->
-      <div class="flex gap-4" *ngIf="canValidate()">
-        <button
-          (click)="approve()"
-          [disabled]="processing"
-          class="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          <span>{{ processing ? 'Aprobando...' : 'Aprobar y Continuar' }}</span>
-        </button>
+      <div *ngIf="canValidate()">
+        <!-- Si está pendiente de validación, mostrar botones aprobar/rechazar -->
+        <div class="flex gap-4" *ngIf="!order.pre_oc_validation_status || order.pre_oc_validation_status === 'pending'">
+          <button
+            (click)="approve()"
+            [disabled]="processing"
+            class="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>{{ processing ? 'Aprobando...' : 'Aprobar y Continuar' }}</span>
+          </button>
 
-        <button
-          (click)="reject()"
-          [disabled]="processing"
-          class="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-          <span>{{ processing ? 'Rechazando...' : 'Rechazar' }}</span>
-        </button>
+          <button
+            (click)="reject()"
+            [disabled]="processing"
+            class="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>{{ processing ? 'Rechazando...' : 'Rechazar' }}</span>
+          </button>
+        </div>
+
+        <!-- Si ya está aprobado y no tiene OC, mostrar botón generar OC -->
+        <div *ngIf="order.pre_oc_validation_status === 'approved' && !order.purchase_order_number">
+          <button
+            (click)="generatePurchaseOrder()"
+            [disabled]="processing"
+            class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-3 text-lg"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span>{{ processing ? 'Generando Orden de Compra...' : 'Generar Orden de Compra' }}</span>
+          </button>
+        </div>
+
+        <!-- Si ya tiene OC generada, mostrar número -->
+        <div *ngIf="order.purchase_order_number" class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-bold text-green-900 text-lg">Orden de Compra Generada</p>
+              <p class="text-sm text-green-700 mt-1">Esta orden ya tiene una OC asignada</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-green-700 font-medium">Número de OC</p>
+              <p class="text-2xl font-bold text-green-900">{{ order.purchase_order_number }}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Mensaje si no tiene permisos -->
@@ -241,6 +272,7 @@ export class PreOcValidationComponent {
   @Input() order!: Order;
   @Output() onApprove = new EventEmitter<{ notes: string }>();
   @Output() onReject = new EventEmitter<{ notes: string }>();
+  @Output() onGeneratePO = new EventEmitter<void>();
   @Output() onClose = new EventEmitter<void>();
 
   validationNotes: string = '';
@@ -279,6 +311,20 @@ export class PreOcValidationComponent {
     if (confirm('¿Está seguro de rechazar esta orden?')) {
       this.processing = true;
       this.onReject.emit({ notes: this.validationNotes });
+    }
+  }
+
+  generatePurchaseOrder(): void {
+    if (!this.canValidate() || this.processing) return;
+
+    if (this.order.pre_oc_validation_status !== 'approved') {
+      alert('La orden debe estar aprobada antes de generar la OC');
+      return;
+    }
+
+    if (confirm('¿Está seguro de generar la Orden de Compra?\n\nEsta acción creará un número de OC único y cambiará el estado de la orden.')) {
+      this.processing = true;
+      this.onGeneratePO.emit();
     }
   }
 }

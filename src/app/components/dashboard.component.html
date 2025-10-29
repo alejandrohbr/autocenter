@@ -1444,6 +1444,7 @@
     [order]="selectedOrder"
     (onApprove)="approvePreOCValidation($event)"
     (onReject)="rejectPreOCValidation($event)"
+    (onGeneratePO)="generatePurchaseOrder()"
     (onClose)="closePreOCValidation()">
   </app-pre-oc-validation>
 </div>
@@ -2738,14 +2739,6 @@
           </div>
         </div>
 
-        <button
-          *ngIf="selectedOrder?.status === 'Pendiente de Orden de Compra' && auth.canAdvanceOrderStatus()"
-          (click)="selectedOrder && generatePurchaseOrder(selectedOrder)"
-          [disabled]="selectedOrder?.isGeneratingPurchaseOrder"
-          class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-        >
-          {{ selectedOrder?.isGeneratingPurchaseOrder ? 'Generando...' : 'Generar Orden de Compra' }}
-        </button>
         <div
           *ngIf="selectedOrder?.status === 'Pendiente de Orden de Compra' && !auth.canAdvanceOrderStatus()"
           class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800"

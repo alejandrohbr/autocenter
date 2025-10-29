@@ -2060,52 +2060,6 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  async generatePurchaseOrder(order: Order) {
-    if (!order.id) return;
-
-    if (!this.canPerformAction(order, 'advance')) {
-      alert(this.getPermissionMessage(order, 'advance'));
-      return;
-    }
-
-    if (order.pre_oc_validation_status !== 'approved') {
-      alert('Este pedido requiere validación pre-OC antes de generar la orden de compra.');
-      return;
-    }
-
-    try {
-      order.isGeneratingPurchaseOrder = true;
-      await this.xmlProductsService.updateOrderStatus(order.id, 'Generando Orden de Compra', {
-        is_generating_purchase_order: true
-      });
-
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const year = new Date().getFullYear();
-      const sequential = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
-      const purchaseOrderFolio = `OC-${year}-${sequential}`;
-
-      await this.xmlProductsService.updateOrderStatus(order.id, 'OC Generada', {
-        is_generating_purchase_order: false,
-        purchase_order_folio: purchaseOrderFolio
-      });
-
-      order.status = 'OC Generada';
-      order.isGeneratingPurchaseOrder = false;
-      order.purchaseOrderFolio = purchaseOrderFolio;
-
-      if (this.selectedOrder?.id === order.id) {
-        this.selectedOrder = {...order};
-      }
-
-      alert(`Orden de compra generada: ${purchaseOrderFolio}`);
-      await this.loadOrders();
-    } catch (error) {
-      console.error('Error generando orden de compra:', error);
-      alert('Error al generar orden de compra');
-      order.isGeneratingPurchaseOrder = false;
-    }
-  }
 
   async markAsDelivered(order: Order) {
     if (!order.id) return;
@@ -2396,8 +2350,17 @@ export class DashboardComponent implements OnInit {
         notes: event.notes
       });
 
+      // Actualizar el selectedOrder para reflejar el cambio
+      if (this.selectedOrder) {
+        this.selectedOrder.pre_oc_validation_status = 'approved';
+        this.selectedOrder.pre_oc_validated_by = this.user?.id;
+        this.selectedOrder.pre_oc_validated_at = new Date();
+        this.selectedOrder.pre_oc_validation_notes = event.notes;
+        this.selectedOrder.status = 'Pre-OC Validado';
+      }
+
       alert('Validación pre-OC aprobada. Ahora puede generar la orden de compra.');
-      this.closePreOCValidation();
+      // NO cerrar el modal para permitir generar la OC
       await this.loadPendingPreOCOrders();
       await this.loadOrders();
     } catch (error: any) {
@@ -2436,6 +2399,44 @@ export class DashboardComponent implements OnInit {
     } catch (error: any) {
       console.error('Error rechazando validación pre-OC:', error);
       alert('Error al rechazar la validación: ' + error.message);
+    }
+  }
+
+  async generatePurchaseOrder() {
+    if (!this.selectedOrder?.id) return;
+
+    try {
+      // Generar número de OC único basado en folio
+      const purchaseOrderNumber = `OC-${this.selectedOrder.folio}`;
+
+      const { error } = await this.supabaseService.client
+        .from('orders')
+        .update({
+          purchase_order_number: purchaseOrderNumber,
+          status: 'Pendiente de Orden de Compra',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', this.selectedOrder.id);
+
+      if (error) throw error;
+
+      await this.authService.logAction('generate_purchase_order', {
+        order_id: this.selectedOrder.id,
+        purchase_order_number: purchaseOrderNumber
+      });
+
+      // Actualizar el selectedOrder para reflejar el cambio
+      if (this.selectedOrder) {
+        this.selectedOrder.purchase_order_number = purchaseOrderNumber;
+        this.selectedOrder.status = 'Pendiente de Orden de Compra';
+      }
+
+      alert(`Orden de Compra generada exitosamente:\n\n${purchaseOrderNumber}`);
+      await this.loadPendingPreOCOrders();
+      await this.loadOrders();
+    } catch (error: any) {
+      console.error('Error generando orden de compra:', error);
+      alert('Error al generar la orden de compra: ' + error.message);
     }
   }
 
