@@ -2079,11 +2079,32 @@ export class DashboardComponent implements OnInit {
 
       if (invoiceError) throw invoiceError;
 
-      alert('Factura eliminada exitosamente');
-
       // Recargar productos XML
       if (this.selectedOrder?.id) {
         await this.loadOrderXmlProducts(this.selectedOrder);
+
+        // Si ya no hay facturas, regresar el estado a "Autorizado"
+        if (this.uploadedInvoices.length === 0 && this.xmlProducts.length === 0) {
+          const { error: statusError } = await this.supabaseService.client
+            .from('orders')
+            .update({
+              status: 'Autorizado',
+              is_processing_xml: false,
+              is_validating_products: false,
+              is_processing_products: false,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', this.selectedOrder.id);
+
+          if (statusError) throw statusError;
+
+          this.selectedOrder.status = 'Autorizado';
+          await this.loadOrders();
+
+          alert('Factura eliminada exitosamente.\n\nEl pedido ha regresado al estado "Autorizado" porque ya no tiene facturas cargadas.');
+        } else {
+          alert('Factura eliminada exitosamente');
+        }
       }
     } catch (error) {
       console.error('Error eliminando factura:', error);
