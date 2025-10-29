@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -199,7 +199,8 @@ export class DashboardComponent implements OnInit {
     private xmlProductsService: XmlProductsService,
     private router: Router,
     private supabaseService: SupabaseService,
-    public permissionsService: OrderPermissionsService
+    public permissionsService: OrderPermissionsService,
+    private cdr: ChangeDetectorRef
   ) {
     this.user = this.authService.getCurrentUser();
   }
@@ -2476,12 +2477,16 @@ export class DashboardComponent implements OnInit {
         };
 
         console.log('Selected order actualizado:', this.selectedOrder);
+
+        // Forzar detección de cambios
+        this.cdr.detectChanges();
       } catch (error) {
         console.error('Error cargando productos para validación pre-OC:', error);
       }
     }
 
     this.showPreOCValidationModal = true;
+    this.cdr.detectChanges();
   }
 
   closePreOCValidation() {
@@ -2521,10 +2526,16 @@ export class DashboardComponent implements OnInit {
         this.selectedOrder.status = 'Pre-OC Validado';
       }
 
+      // Forzar la detección de cambios
+      this.cdr.detectChanges();
+
       alert('Validación pre-OC aprobada. Ahora puede generar la orden de compra.');
       // NO cerrar el modal para permitir generar la OC
       await this.loadPendingPreOCOrders();
       await this.loadOrders();
+
+      // Forzar detección de cambios después de cargar
+      this.cdr.detectChanges();
     } catch (error: any) {
       console.error('Error aprobando validación pre-OC:', error);
       alert('Error al aprobar la validación: ' + error.message);

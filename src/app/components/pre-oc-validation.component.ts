@@ -41,13 +41,13 @@ import { OrderPermissionsService } from '../services/order-permissions.service';
           </div>
           <div>
             <p class="text-sm font-medium text-blue-900">Vehículo</p>
-            <p class="text-lg font-bold text-blue-700">{{ order.vehicle?.placas || order.vehiculo?.placas || 'N/A' }}</p>
-            <p class="text-xs text-blue-600">{{ order.vehicle?.marca || order.vehiculo?.marca }} {{ order.vehicle?.modelo || order.vehiculo?.modelo }}</p>
+            <p class="text-lg font-bold text-blue-700 capitalize">{{ order.vehicle?.placas || order.vehiculo?.placas || 'N/A' }}</p>
+            <p class="text-xs text-blue-600 capitalize">{{ order.vehicle?.marca || order.vehiculo?.marca }} {{ order.vehicle?.modelo || order.vehiculo?.modelo }}</p>
           </div>
           <div>
             <p class="text-sm font-medium text-blue-900">Fecha</p>
-            <p class="text-lg font-bold text-blue-700">{{ order.fecha | date:'dd/MM/yyyy' }}</p>
-            <p class="text-xs text-blue-600">{{ order.fecha | date:'HH:mm' }}</p>
+            <p class="text-lg font-bold text-blue-700">{{ (order.fecha | date:'dd/MM/yyyy') || 'N/A' }}</p>
+            <p class="text-xs text-blue-600">{{ (order.fecha | date:'HH:mm') || '' }}</p>
           </div>
           <div>
             <p class="text-sm font-medium text-blue-900">Total</p>
