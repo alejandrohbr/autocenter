@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SupabaseService } from '../services/supabase.service';
 import { AuthService } from '../services/auth.service';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
@@ -77,22 +78,35 @@ interface InactiveCustomer {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="p-6 space-y-6">
+    <div class="min-h-screen bg-gray-100">
       <!-- Header -->
-      <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-900">Dashboard Gerencial</h1>
-        <div class="flex gap-4">
-          <select [(ngModel)]="selectedPeriod" (change)="loadAllData()" class="px-4 py-2 border rounded-lg">
-            <option value="1">Último mes</option>
-            <option value="3">Últimos 3 meses</option>
-            <option value="6">Últimos 6 meses</option>
-            <option value="12">Último año</option>
-          </select>
-          <button (click)="exportToPDF()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Exportar PDF
-          </button>
+      <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 shadow-lg mb-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center py-6">
+            <div class="flex items-center gap-4">
+              <button (click)="goBack()" class="text-white hover:bg-white/20 p-2 rounded-lg transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+              </button>
+              <h1 class="text-3xl font-bold text-white">Dashboard Gerencial</h1>
+            </div>
+            <div class="flex gap-4">
+              <select [(ngModel)]="selectedPeriod" (change)="loadAllData()" class="px-4 py-2 border rounded-lg bg-white">
+                <option value="1">Último mes</option>
+                <option value="3">Últimos 3 meses</option>
+                <option value="6">Últimos 6 meses</option>
+                <option value="12">Último año</option>
+              </select>
+              <button (click)="exportToPDF()" class="px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 font-medium">
+                Exportar PDF
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pb-6">
 
       <!-- KPIs Overview -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -262,6 +276,7 @@ interface InactiveCustomer {
           </table>
         </div>
       </div>
+      </div>
     </div>
   `
 })
@@ -295,7 +310,8 @@ export class AnalyticsDashboardComponent implements OnInit, AfterViewInit {
 
   constructor(
     private supabase: SupabaseService,
-    private auth: AuthService
+    private auth: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -830,6 +846,10 @@ export class AnalyticsDashboardComponent implements OnInit, AfterViewInit {
     if (this.avgConversionRate >= 70) return 'Excelente';
     if (this.avgConversionRate >= 50) return 'Bueno';
     return 'Necesita mejorar';
+  }
+
+  goBack() {
+    this.router.navigate(['/dashboard']);
   }
 
   exportToPDF() {

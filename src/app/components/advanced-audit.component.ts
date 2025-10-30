@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SupabaseService } from '../services/supabase.service';
 import { AuthService } from '../services/auth.service';
 
@@ -56,19 +57,32 @@ interface AuditLog {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="p-6 space-y-6">
+    <div class="min-h-screen bg-gray-100">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">Auditoría Avanzada</h1>
-        <div class="flex gap-4">
-          <button (click)="generateAlerts()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Generar Alertas
-          </button>
-          <button (click)="exportToExcel()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-            Exportar a Excel
-          </button>
+      <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 shadow-lg mb-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center py-6">
+            <div class="flex items-center gap-4">
+              <button (click)="goBack()" class="text-white hover:bg-white/20 p-2 rounded-lg transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+              </button>
+              <h1 class="text-3xl font-bold text-white">Auditoría Avanzada</h1>
+            </div>
+            <div class="flex gap-4">
+              <button (click)="generateAlerts()" class="px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 font-medium">
+                Generar Alertas
+              </button>
+              <button (click)="exportToExcel()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
+                Exportar a Excel
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pb-6">
 
       <!-- Tabs -->
       <div class="border-b border-gray-200">
@@ -398,6 +412,7 @@ interface AuditLog {
           </div>
         </div>
       </div>
+      </div>
     </div>
   `
 })
@@ -438,7 +453,8 @@ export class AdvancedAuditComponent implements OnInit {
 
   constructor(
     private supabase: SupabaseService,
-    private auth: AuthService
+    private auth: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -697,6 +713,10 @@ export class AdvancedAuditComponent implements OnInit {
   formatDateTime(dateStr: string): string {
     const date = new Date(dateStr);
     return date.toLocaleString('es-MX');
+  }
+
+  goBack() {
+    this.router.navigate(['/dashboard']);
   }
 
   exportToExcel() {
