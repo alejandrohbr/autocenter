@@ -328,6 +328,10 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/users']);
   }
 
+  goToAnalytics() {
+    this.router.navigate(['/analytics']);
+  }
+
   goToAudit() {
     this.router.navigate(['/audit']);
   }

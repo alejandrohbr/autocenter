@@ -4,133 +4,40 @@
 
 ❯ Building...
 ✔ Building...
-Initial chunk files   | Names         |  Raw size | Estimated transfer size
-main-OGMSEHGE.js      | main          |   1.26 MB |               282.29 kB
-chunk-M2KFV74V.js     | -             | 203.11 kB |                38.48 kB
-styles-6JVNFTT5.css   | styles        |  41.53 kB |                 5.89 kB
-polyfills-SCHOHYNV.js | polyfills     |  34.52 kB |                11.29 kB
-chunk-FK42CRUA.js     | -             |   1.26 kB |               558 bytes
-chunk-LJ5XHLMQ.js     | -             | 455 bytes |               455 bytes
-chunk-FK6H3RFT.js     | -             | 272 bytes |               272 bytes
-
-                      | Initial total |   1.54 MB |               339.24 kB
-
-Lazy chunk files      | Names         |  Raw size | Estimated transfer size
-chunk-N2ZVBKZF.js     | index-es      | 158.61 kB |                46.87 kB
-chunk-BA6LLERM.js     | purify-es     |  21.89 kB |                 7.65 kB
-chunk-BX7VDEVO.js     | browser       | 155 bytes |               155 bytes
-chunk-WDEGWKP4.js     | html2canvas   |  83 bytes |                83 bytes
-
-Application bundle generation complete. [21.960 seconds]
+Application bundle generation failed. [30.649 seconds]
 
 ▲ [WARNING] NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. [plugin angular-compiler]
 
-    src/app/components/pre-oc-validation.component.ts:49:37:
-      49 │               \${{ order.presupuesto?.toFixed(2) || '0.00' }}
+    src/app/components/advanced-audit.component.ts:354:64:
+      354 │ ... {{ log.resource_type }} - {{ log.resource_id?.substring(0, 8) }}
+          ╵                                                   ~~~~~~~~~
+
+
+▲ [WARNING] NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. [plugin angular-compiler]
+
+    src/app/components/authorization-request.component.ts:72:43:
+      72 │                   $ {{ item.estimatedCost?.toFixed(2) || '0.00' }}
+         ╵                                            ~~~~~~~
+
+
+▲ [WARNING] NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. [plugin angular-compiler]
+
+    src/app/components/pre-oc-validation.component.ts:55:37:
+      55 │               \${{ order.presupuesto?.toFixed(2) || '0.00' }}
          ╵                                      ~~~~~~~
 
 
-▲ [WARNING] Module 'core-js/modules/es.promise.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
+▲ [WARNING] NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. [plugin angular-compiler]
 
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'core-js/modules/es.string.match.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+    src/app/components/pre-oc-validation.component.ts:114:68:
+      114 │ ...ext-right p-2">\${{ producto.precio?.toFixed(2) || '0.00' }}</td>
+          ╵                                        ~~~~~~~
 
 
-▲ [WARNING] Module 'core-js/modules/es.string.replace.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
+✘ [ERROR] NG9: Property 'Object' does not exist on type 'AdvancedAuditComponent'. [plugin angular-compiler]
 
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
+    src/app/components/advanced-audit.component.ts:167:48:
+      167 │ ...iv *ngIf="alert.metadata && Object.keys(alert.metadata).length...
+          ╵                                ~~~~~~
 
-
-▲ [WARNING] Module 'core-js/modules/es.string.starts-with.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'core-js/modules/es.array.iterator.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'core-js/modules/web.dom-collections.iterator.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'core-js/modules/es.array.reduce.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'core-js/modules/es.string.ends-with.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'core-js/modules/es.string.split.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'raf' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'core-js/modules/es.string.trim.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'rgbcolor' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'core-js/modules/es.array.index-of.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'core-js/modules/es.string.includes.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'core-js/modules/es.array.reverse.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'core-js/modules/es.regexp.to-string.js' used by 'node_modules/canvg/lib/index.es.js' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-▲ [WARNING] Module 'html2canvas' used by 'src/app/services/pdf-generator.service.ts' is not ESM
-
-  CommonJS or AMD dependencies can cause optimization bailouts.
-  For more information see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies
-
-
-Output location: /tmp/cc-agent/58776068/project/dist/demo
 
